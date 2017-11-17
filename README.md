@@ -4,9 +4,9 @@
 
 Term: Fall 2017
 
-+ Team #
-+ Projec title: Lorem ipsum dolor sit amet
-+ Team members
++ Group 4
++ Projec title: 
++ Team members:
 	+ Carantino, Vassily
 	+ Guo, Xinyao
 	+ Han, Lin
