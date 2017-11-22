@@ -1,0 +1,36 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+```{r}
+mv_train<- read.csv("/Users/linhan/Desktop/semester3/ADS/fall2017-project4-group4/data/train2.csv",header = T, stringsAsFactors = F)
+mv_test<- read.csv("/Users/linhan/Desktop/semester3/ADS/fall2017-project4-group4/data/test2.csv",header = T, stringsAsFactors = F)
+```
+
+```{r}
+# row.names(mv_train)<-  mv_train[,1]
+# mv_cor_train<- cor(t(mv_train[,-1]),use="pairwise.complete.obs",method="pearson")
+# mv_cor_train<- data.frame(mv_cor_train)
+```
+
+
+```{r}
+mv_train<-data.frame(mv_train[,-1],row.names = mv_train[,1])
+mv_cor_train<- cor(t(mv_train[,-1]),use="pairwise.complete.obs",method="pearson")
+```
+
+```{r}
+sign_w<- function(sw,data){
+  data1<- !is.na(data)
+  data2<- data1 %*% t(data1)
+  data3<- data2/50
+  data3<- ifelse(data3>1,1,data3)
+  data_sw<- sw * data3
+  return(data_sw)
+}
+```
+
+
+```{r}
+pearson_sw2<- sign_w(sw= mv_cor_train, data= mv_train)
+```
