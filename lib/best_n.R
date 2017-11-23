@@ -5,5 +5,5 @@ best_n<- function(sw,n){
   for(i in 1:5055){
     result[[i]]<- ifelse(sw[i, loc1[ ,i]],sw[i, loc1[ ,i]],NA )
   }
-  return(psw4)
+  return(result)
 }
