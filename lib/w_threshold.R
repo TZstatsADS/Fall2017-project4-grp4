@@ -1,5 +1,4 @@
 cwt<- function(sw, t){
-  result<- matrix(NA, ncol=ncol(sw), nrow = nrow(sw))
-  result<- ifelse(abs(sw)>=t,sw,NA)
+  result<- apply(sw, 1, function(x) ifelse(abs(x)>=t, x, NA))
   return(result)
 }
