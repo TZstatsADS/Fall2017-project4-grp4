@@ -46,10 +46,13 @@ common.no<-i_matrix %*% t(i_matrix)
 #MSE
 mse<-se/common.no
 mean.square.diff<-as.data.frame(mse)
-#MIN-MAX normalization(in process)
-mse.similarity2<-(max(mean.square.diff)-mean.square.diff)/(max(mean.square.diff)-min(mean.square.diff))
+#MIN-MAX normalization 
+max(mean.square.diff,na.rm = T) #max=25
+min(mean.square.diff,na.rm = T) #min=0
+mse.similarity2<-(25-mean.square.diff)/25
 #deal with NA values
 mse.similarity2[is.na(mse.similarity2)]=0
 #save to file
 write.csv(mse.similarity2,"mse2.csv")
+
 
