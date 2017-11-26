@@ -1,7 +1,8 @@
 ###Dataset 1
 train<-read.csv("MS_train2.csv",header=T)
 train<-data.frame(train[,-c(1,2)],row.names = train[,2])
-train[is.na(train)]=0
+train[is.na(train)]=0   
+# in process:
 meandiff<-function(x){
   out <- matrix(NA, nrow=nrow(x),ncol=nrow(x),dimnames=list(rownames(x),rownames(x)))
   #out <- as.data.frame(out)
@@ -11,11 +12,18 @@ meandiff<-function(x){
       out[i,j]<-sum((x[i,]-x[j,])^2)/ncol(x)
       out[j,i]=out[i,j]
     }
+    if(i %% 100 == 0){
+      print(paste("---Finish computing mse for number",i,"users---"))
+    }
   }
+  
   return(out)
 }
 mean.square.diff<-meandiff(train)
-write.csv(mean.square.diff,"mse.csv")
+#convert to similarity scores
+mse.similarity<-1-mean.square.diff
+#save to file
+write.csv(mse.similarity,"mse1.csv")
 
 ###Dataset 2
 train2<-read.csv("train2.csv",header=T)
@@ -31,15 +39,17 @@ sqr[is.na(sqr)]=0
 a.square<-sqr %*% t(i_matrix)
 #b^2
 b.square<-i_matrix %*% t(sqr)
-#squared error
+#squared difference
 se<-a.square+b.square-two.a.b
-#denominator(common number of rating)
+#denominator(number of common rating)
 common.no<-i_matrix %*% t(i_matrix)
-#mean squared difference
+#MSE
 mse<-se/common.no
 mean.square.diff<-as.data.frame(mse)
-#deal with NA (denominator=0)
-mean.square.diff[is.na(mean.square.diff)]=0
-write.csv(mean.square.diff,"mse2.csv")
-
+#MIN-MAX normalization(in process)
+mse.similarity2<-(max(mean.square.diff)-mean.square.diff)/(max(mean.square.diff)-min(mean.square.diff))
+#deal with NA values
+mse.similarity2[is.na(mse.similarity2)]=0
+#save to file
+write.csv(mse.similarity2,"mse2.csv")
 
