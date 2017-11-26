@@ -27,12 +27,19 @@ dff[is.na(dff)]=0
 two.a.b<-2*as.matrix(dff) %*% t(dff)
 sqr<-train2^2
 sqr[is.na(sqr)]=0
+#a^2
 a.square<-sqr %*% t(i_matrix)
+#b^2
 b.square<-i_matrix %*% t(sqr)
+#squared error
 se<-a.square+b.square-two.a.b
+#denominator(common number of rating)
 common.no<-i_matrix %*% t(i_matrix)
+#mean squared difference
 mse<-se/common.no
 mean.square.diff<-as.data.frame(mse)
+#deal with NA (denominator=0)
+mean.square.diff[is.na(mean.square.diff)]=0
 write.csv(mean.square.diff,"mse2.csv")
 
 
