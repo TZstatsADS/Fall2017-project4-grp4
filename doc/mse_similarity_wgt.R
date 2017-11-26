@@ -2,28 +2,12 @@
 train<-read.csv("MS_train2.csv",header=T)
 train<-data.frame(train[,-c(1,2)],row.names = train[,2])
 train[is.na(train)]=0   
-# in process:
-meandiff<-function(x){
-  out <- matrix(NA, nrow=nrow(x),ncol=nrow(x),dimnames=list(rownames(x),rownames(x)))
-  #out <- as.data.frame(out)
-  for (i in 1:nrow(x)){
-    for (j in i:nrow(x)){
-      out[j,i]<-0
-      out[i,j]<-sum((x[i,]-x[j,])^2)/ncol(x)
-      out[j,i]=out[i,j]
-    }
-    if(i %% 100 == 0){
-      print(paste("---Finish computing mse for number",i,"users---"))
-    }
-  }
-  
-  return(out)
-}
-mean.square.diff<-meandiff(train)
-#convert to similarity scores
-mse.similarity<-1-mean.square.diff
-#save to file
-write.csv(mse.similarity,"mse1.csv")
+sqrt.dissim<-dist(train,method = "euclidean",diag = T,upper = T)
+mse<-(sqrt.dissim^2)/ncol(train)
+mmm<-as.data.frame(mse)
+mse.similarity1<-1-mmm
+mmmm<-as.matrix(mse.similarity1)
+write.csv(mmmm,"mse1.csv")
 
 ###Dataset 2
 train2<-read.csv("train2.csv",header=T)
