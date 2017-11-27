@@ -12,7 +12,22 @@ Term: Fall 2017
 	+ Li, Qihang
 	+ Shi, Qian
 The designated presenter is Han, Lin
-+ Project summary: Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
++ Project summary: 
+1.Memory-based Algorithm
+Similarity Weight
+          a. Pearson Correlation
+          b. Entropy
+          c. Mean-Square-difference
+          d. SimRank :1
+Significance Weighting
+Selecting Neighbours
+          a. Weight Threshold
+          b. Best-n-estimator
+          c. Combined
+Rating Normalization
+          Deviation for Mean
+2.Cluster Model
+
 	
 **Contribution statement**: ([default](doc/a_note_on_contributions.md)) All team members contributed equally in all stages of this project. All team members approve our work presented in this GitHub repository including this contributions statement. 
 
