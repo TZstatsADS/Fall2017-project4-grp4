@@ -1,0 +1,278 @@
+---
+title: "Project 4 - Example Main Script"
+author: "Lin Han, Xinyao Guo, Qihang Li, Qian Shi, Vassily Carantino"
+output: html_notebook
+---
+
+```{r}
+source("/Users/linhan/Desktop/semester3/ADS/fall2017-project4-group4/lib/sign_weight.R")
+source("/Users/linhan/Desktop/semester3/ADS/fall2017-project4-group4/lib/sign_weight1.R")
+source("/Users/linhan/Desktop/semester3/ADS/fall2017-project4-group4/lib/w_threshold.R")
+source("/Users/linhan/Desktop/semester3/ADS/fall2017-project4-group4/lib/best_n.R")
+source("/Users/linhan/Desktop/semester3/ADS/fall2017-project4-group4/lib/combined.R")
+```
+
+```{r}
+mv_train<- read.csv("../data/train2.csv",header = T, stringsAsFactors = F)
+mv_test<- read.csv("../data/test2.csv",header = T, stringsAsFactors = F)
+ms_train<- read.csv("../data/MS_train2.csv",header = T, stringsAsFactors = F)
+ms_test<- read.csv("../data/MS_test2.csv",header = T, stringsAsFactors = F)
+```
+
+Algorithm One: Memory-based Algorithm
+1. Similarity Weight
+1(a)Pearson Correlation
+
+1(b)Entropy
+
+1.(c)Mean-square-difference
+
+1.(d)SimRank
+
+2. Significance Weighting
+```{r}
+run.sign_weight=TRUE
+run.sign_weight1=TRUE
+
+if(run.sign_weight){
+  mse2.sw<- sign_w(sw= mse2[ ,-1], data= mv_train)
+  pearson2.sw<- sign_w(sw= pearson2[ ,-1], data= mv_train)
+  entropy2.sw<- sign_w(sw= entropy2[ ,-1], data= mv_train)
+}
+if(run.sign_weight1){
+  mse1.sw<- sign_w1(sw= mse1[ ,-1], data= ms_train)
+  pearson1.sw<- sign_w1(sw= pearson1[ ,-1], data= ms_train)
+  entropy1.sw<- sign_w1(sw= entropy1[ ,-1], data= ms_train)
+}
+```
+
+3.Selecting Neighbors
+
+3(a)Weight Threshold
+
+```{r}
+run.w_threshold=TRUE 
+run.best_n=TRUE
+run.combined=TRUE
+if(run.w_threshold){
+################dataset1#######################0.2,0.4,0.5,0.6
+  # pearson1.wt0.5<-cwt(pearson1[ ,-1], t= 0.5)
+  # pearson1.wt0.2<-cwt(pearson1[ ,-1], t= 0.2)
+  # pearson1.wt0.4<-cwt(pearson1[ ,-1], t= 0.4)
+  # pearson1.wt0.6<-cwt(pearson1[ ,-1], t= 0.6)
+  # pearson1.sw.wt0.05<- cwt(pearson1.sw, t= 0.05)
+  # pearson1.sw.wt0.02<- cwt(pearson1.sw, t= 0.02)
+  # pearson1.sw.wt0.04<- cwt(pearson1.sw, t= 0.04)
+  # pearson1.sw.wt0.06<- cwt(pearson1.sw, t= 0.06)
+################dataset2######################0.2,0.4,0.5,0.6
+  # pearson2.wt0.5<-cwt(pearson2[ ,-1], t= 0.5)
+  # pearson2.wt0.2<-cwt(pearson2[ ,-1], t= 0.2)
+  # pearson2.wt0.4<-cwt(pearson2[ ,-1], t= 0.4)
+  # pearson2.wt0.6<-cwt(pearson2[ ,-1], t= 0.6)
+  # pearson2.sw.wt0.5<- cwt(pearson2.sw, t= 0.5)
+  # pearson2.sw.wt0.2<- cwt(pearson2.sw, t= 0.2)
+  # pearson2.sw.wt0.4<- cwt(pearson2.sw, t= 0.4)
+  # pearson2.sw.wt0.6<- cwt(pearson2.sw, t= 0.6)
+#################dataset1######################mse1:0-0.1822:0.05
+  # mse1.wt0.04<- cwt(mse1[ ,-1], t=0.04)
+  # mse1.wt0.05<- cwt(mse1[ ,-1], t=0.05)
+  # mse1.sw.wt0.002<- cwt(mse1.sw, t=0.002)
+# #################dataset2######################mse:0-25:5
+  # mse2.wt0.3<- cwt(mse2[ ,-1], t=0.3)
+  # mse2.wt0.5<- cwt(mse2[ ,-1], t=0.5)
+  # mse2.sw.wt0.3<- cwt(mse2.sw, t =0.3)
+  # mse2.sw.wt0.5<- cwt(mse2.sw, t =0.5)
+  ###########################################Entropy
+ #   entropy1.wt0.6<-cwt(entropy1[ ,-1], t= 0.6)
+ # entropy1.wt0.8<-cwt(entropy1[ ,-1], t= 0.8)
+ # 
+ # entropy1.sw.wt0.6<- cwt(entropy1.sw, t= 0.6)
+ # entropy1.sw.wt0.8<- cwt(entropy1.sw, t= 0.8)
+ #  entropy2.wt0.2<-cwt(entropy2[ ,-1], t= 0.2)
+ #  entropy2.wt0.3<-cwt(entropy2[ ,-1], t= 0.3)
+ # 
+ #  entropy2.sw.wt0.2<- cwt(entropy2.sw, t= 0.2)
+ #  entropy2.sw.wt0.3<- cwt(entropy2.sw, t= 0.3)
+}
+```
+
+
+```{r}
+# write.csv(pearson1.wt0.5, "../output/pearson1.wt0.5.csv")
+# write.csv(pearson1.wt0.2, "../output/pearson1.wt0.2.csv")
+# write.csv(pearson1.wt0.4, "../output/pearson1.wt0.4.csv")
+# write.csv(pearson1.wt0.6, "../output/pearson1.wt0.6.csv")
+# write.csv(pearson1.sw.wt0.05, "../output/pearson1.sw.wt0.05.csv")
+# write.csv(pearson1.sw.wt0.04, "../output/pearson1.sw.wt0.04.csv")
+# write.csv(pearson1.sw.wt0.02, "../output/pearson1.sw.wt0.02.csv")
+# write.csv(pearson1.sw.wt0.06, "../output/pearson1.sw.wt0.06.csv")
+# 
+# write.csv(pearson2.wt0.5, "../output/pearson2.wt0.5.csv")
+# write.csv(pearson2.wt0.2, "../output/pearson2.wt0.2.csv")
+# write.csv(pearson2.wt0.4, "../output/pearson2.wt0.4.csv")
+# write.csv(pearson2.wt0.6, "../output/pearson2.wt0.6.csv")
+# write.csv(pearson2.sw.wt0.5, "../output/pearson2.sw.wt0.5.csv")
+# write.csv(pearson2.sw.wt0.4, "../output/pearson2.sw.wt0.4.csv")
+# write.csv(pearson2.sw.wt0.2, "../output/pearson2.sw.wt0.2.csv")
+# write.csv(pearson2.sw.wt0.6, "../output/pearson2.sw.wt0.6.csv")
+# write.csv(mse1.wt0.04, "../output/mse1.wt0.04.csv")
+# write.csv(mse1.wt0.05, "../output/mse1.wt0.05.csv")
+# write.csv(mse1.sw.wt0.002, "../output/mse1.sw.wt0.002.csv")
+# write.csv(mse2.wt0.3, "../output/mse2.wt0.3.csv")
+# write.csv(mse2.wt0.5, "../output/mse2.wt0.5.csv")
+# write.csv(mse2.sw.wt0.3, "../output/mse2.sw.wt0.3.csv")
+# write.csv(mse2.sw.wt0.5, "../output/mse2.sw.wt0.5.csv")
+# write.csv(entropy1.wt0.6, "../output/entropy/entropy1.wt0.6.csv")
+# write.csv(entropy1.wt0.8, "../output/entropy/entropy1.wt0.8.csv")
+# write.csv(entropy1.sw.wt0.6, "../output/entropy/entropy1.sw.wt0.6.csv")
+# write.csv(entropy1.sw.wt0.8, "../output/entropy/entropy1.sw.wt0.8.csv")
+# 
+# write.csv(entropy2.wt0.2, "../output/entropy/entropy2.wt0.2.csv")
+# write.csv(entropy2.wt0.3, "../output/entropy/entropy2.wt0.3.csv")
+# write.csv(entropy2.sw.wt0.2, "../output/entropy/entropy2.sw.wt0.2.csv")
+#write.csv(entropy2.sw.wt0.3, "../output/entropy/entropy2.sw.wt0.3.csv")
+```
+
+3(b)Best-n-estimator
+```{r}
+if(run.best_n){
+#################dataset1####################n= 50,100,150
+#   pearson1.bn50<- best_n(pearson1[ ,-1], 50)
+#   pearson1.bn50<- data.frame(pearson1.bn50, row.names = pearson1[ ,1])
+#   pearson1.bn100<- best_n(pearson1[ ,-1], 100)
+#   pearson1.bn100<- data.frame(pearson1.bn100, row.names = pearson1[ ,1])
+#   pearson1.bn150<- best_n(pearson1[ ,-1], 150)
+#   pearson1.bn150<- data.frame(pearson1.bn150, row.names = pearson1[ ,1])
+#   pearson1.sw.bn50<- best_n(pearson1.sw, 50)
+#   pearson1.sw.bn50<- data.frame(pearson1.sw.bn50, row.names = pearson1[ ,1])
+#   pearson1.sw.bn100<- best_n(pearson1.sw, 100)
+#   pearson1.sw.bn100<- data.frame(pearson1.sw.bn100, row.names = pearson1[ ,1])
+#   pearson1.sw.bn150<- best_n(pearson1.sw, 150)
+#   pearson1.sw.bn150<- data.frame(pearson1.sw.bn150, row.names = pearson1[ ,1])
+# ###############dataset2####################n= 50,100,150
+#   pearson2.bn50<- best_n(pearson2[ ,-1], 50)
+#   pearson2.bn50<-data.frame(pearson2.bn50, row.names = pearson2[ ,1])
+#   pearson2.bn100<- best_n(pearson2[ ,-1], 100)
+#   pearson2.bn100<-data.frame(pearson2.bn100, row.names = pearson2[ ,1])
+#   pearson2.bn150<- best_n(pearson2[ ,-1], 150)
+#   pearson2.bn150<-data.frame(pearson2.bn150, row.names = pearson2[ ,1])
+#   pearson2.sw.bn50<- best_n(pearson2.sw, 50)
+#   pearson2.sw.bn50<- data.frame(pearson2.sw.bn50,row.names = pearson2[ ,1])
+#   pearson2.sw.bn100<- best_n(pearson2.sw, 100)
+#   pearson2.sw.bn100<- data.frame(pearson2.sw.bn100,row.names = pearson2[ ,1])
+#   pearson2.sw.bn150<- best_n(pearson2.sw, 150)
+#   pearson2.sw.bn150<- data.frame(pearson2.sw.bn150,row.names = pearson2[ ,1])
+# # ##############dataset1###################n= 100,150
+#   mse1.bn100<- best_n(mse1[ ,-1],100)
+#   mse1.bn150<- best_n(mse1[ ,-1],150)
+#   mse1.sw.bn100<- best_n(mse1.sw,100)
+#   mse1.sw.bn150<- best_n(mse1.sw,150)
+# # ##############dataset2##############n=100,150
+#   mse2.bn100<- best_n(mse2[ ,-1],100)
+#   mse2.bn150<- best_n(mse2[ ,-1],150)
+#   mse2.sw.bn100<- best_n(mse2.sw,100)
+#   mse2.sw.bn150<- best_n(mse2.sw,150)
+#   ###################################Entropy
+#   entropy1.bn100<- best_n(entropy1[ ,-1], 100)
+# entropy1.bn100<- data.frame(entropy1.bn100, row.names = entropy1[ ,1])
+# entropy1.bn200<- best_n(entropy1[ ,-1], 200)
+# entropy1.bn200<- data.frame(entropy1.bn200, row.names = entropy1[ ,1])
+# 
+# entropy1.sw.bn100<- best_n(entropy1.sw, 100)
+# entropy1.sw.bn100<- data.frame(entropy1.sw.bn100, row.names = entropy1[ ,1])
+# entropy1.sw.bn200<- best_n(entropy1.sw, 200)
+# entropy1.sw.bn200<- data.frame(entropy1.sw.bn200, row.names = entropy1[ ,1])
+
+# entropy2.bn100<- best_n(entropy2[ ,-1], 100)
+# entropy2.bn100<- data.frame(entropy2.bn100, row.names = entropy2[ ,1])
+# entropy2.bn200<- best_n(entropy2[ ,-1], 200)
+# entropy2.bn200<- data.frame(entropy2.bn200, row.names = entropy2[ ,1])
+# 
+# entropy2.sw.bn100<- best_n(entropy2.sw, 100)
+# entropy2.sw.bn100<- data.frame(entropy2.sw.bn100, row.names = entropy2[ ,1])
+# entropy2.sw.bn200<- best_n(entropy2.sw, 200)
+# entropy2.sw.bn200<- data.frame(entropy2.sw.bn200, row.names = entropy2[ ,1])
+}
+```
+
+
+```{r}
+# write.csv(pearson1.bn50,"../output/pearson1.bn50.csv")
+# write.csv(pearson1.bn100,"../output/pearson1.bn100.csv")
+# write.csv(pearson1.bn150,"../output/pearson1.bn150.csv")
+# write.csv(pearson1.sw.bn50,"../output/pearson1.sw.bn50.csv")
+# write.csv(pearson1.sw.bn100,"../output/pearson1.sw.bn100.csv")
+# write.csv(pearson1.sw.bn150,"../output/pearson1.sw.bn150.csv")
+# write.csv(pearson2.bn50,"../output/pearson2.bn50.csv")
+# write.csv(pearson2.bn100,"../output/pearson2.bn100.csv")
+# write.csv(pearson2.bn150,"../output/pearson2.bn150.csv")
+# write.csv(pearson2.sw.bn50,"../output/pearson2.sw.bn50.csv")
+# write.csv(pearson2.sw.bn100,"../output/pearson2.sw.bn100.csv")
+# write.csv(pearson2.sw.bn150,"../output/pearson2.sw.bn150.csv")
+# write.csv(mse1.bn100, "../output/mse1.bn100.csv")
+# write.csv(mse1.bn150, "../output/mse1.bn150.csv")
+# write.csv(mse1.sw.bn100,"../output/mse1.sw.bn100.csv")
+# write.csv(mse1.sw.bn150,"../output/mse1.sw.bn150.csv")
+# 
+# write.csv(mse2.bn100, "../output/mse2.bn100.csv")
+# write.csv(mse2.bn150, "../output/mse2.bn150.csv")
+# write.csv(mse2.sw.bn100,"../output/mse2.sw.bn100.csv")
+# write.csv(mse2.sw.bn150,"../output/mse2.sw.bn150.csv")
+# 
+# write.csv(entropy1.bn100, "../output/entropy/entropy1.bn100.csv")
+# write.csv(entropy1.bn200, "../output/entropy/entropy1.bn200.csv")
+# write.csv(entropy1.sw.bn100, "../output/entropy/entropy1.sw.bn100.csv")
+# write.csv(entropy1.sw.bn200, "../output/entropy/entropy1.sw.bn200.csv")
+# 
+# write.csv(entropy2.bn100, "../output/entropy/entropy2.bn100.csv")
+# write.csv(entropy2.bn200, "../output/entropy/entropy2.bn200.csv")
+# write.csv(entropy2.sw.bn100, "../output/entropy/entropy2.sw.bn100.csv")
+# write.csv(entropy2.sw.bn200, "../output/entropy/entropy2.sw.bn200.csv")
+```
+
+3(c)Combined
+```{r}
+if(run.combined){
+  # pearson1.com<- combined(pearson1, n=150, t=0.4)
+  # pearson1.com<- data.frame(pearson1.com, row.names = pearson1[ ,1])
+  # pearson2.com<- combined(pearson2, n=150, t=0.4)
+  # pearson2.com<- data.frame(pearson2.com, row.names = pearson2[ ,1])
+  # pearson1.sw.com<- combined(pearson1.sw, n=150, t=0.02)
+  # pearson1.sw.com<- data.frame(pearson1.sw.com, row.names = pearson1[ ,1])
+  # pearson2.sw.com<- combined(pearson2.sw, n=100, t=0.4)
+  # pearson2.sw.com<- data.frame(pearson2.sw.com, row.names = pearson2[ ,1])
+  # 
+  # mse1.com<- cwt(mse1[ ,-1], n=200, t=0.04)
+  # mse1.sw.com<- cwt(mse1.sw, n=200, t=0.04)
+  # mse2.com<- cwt(mse2[ ,-1], n=200, t=0.4)
+  # mse2.sw.com<- cwt(mse2.sw, n=200, t=0.4)
+  # 
+  # entropy1.com<- combined(entropy1, n=200, t=0.6)
+  # entropy1.sw.com<- combined(entropy1.sw, n=200, t=0.6)
+  # entropy2.com<- combined(entropy2, n=200, t=0.6)
+  # entropy2.sw.com<- combined(entropy2.sw, n=200, t=0.6)
+}
+```
+
+
+```{r}
+# write.csv(pearson1.com, "../output/pearson1.com.csv")
+# write.csv(pearson2.com, "../output/pearson2.com.csv")
+# write.csv(pearson1.sw.com, "../output/pearson1.sw.com.csv")
+# write.csv(pearson2.sw.com, "../output/pearson2.sw.com.csv")
+# 
+# write.csv(mse1.com, "../output/mse1.com.csv")
+# write.csv(mse2.com, "../output/mse2.com.csv")
+# write.csv(mse1.sw.com, "../output/mse1.sw.com.csv")
+# write.csv(pearson2.sw.com, "../output/pearson2.sw.com.csv")
+# 
+# write.csv(entropy1.com,"../output/entropy/entropy1.com.csv")
+# write.csv(entropy1.sw.com,"../output/entropy/entropy1.sw.com.csv")
+# write.csv(entropy2.com,"../output/entropy/entropy2.com.csv")
+# write.csv(entropy2.sw.com,"../output/entropy/entropy2.sw.com.csv")
+```
+
+4.Rating Normalization
+
+
+Algorithm Two: Model-based Algorithm------Cluster Models
