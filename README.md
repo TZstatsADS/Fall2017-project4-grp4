@@ -29,7 +29,12 @@ The designated presenter is Han, Lin
 + 2.Cluster Model
 
 	
-**Contribution statement**: ([default](doc/a_note_on_contributions.md)) All team members contributed equally in all stages of this project. All team members approve our work presented in this GitHub repository including this contributions statement. 
+**Contribution statement**: ([default](doc/a_note_on_contributions.md))
++ Xinyao Guo: Similarity Weight: Pearson Correlation, Entropy, Mean-square-difference; main File
++ Lin Han(lh2810)--DESIGNED PRESENTOR: Significance Weighting; Selecting Neighbors: Weight Threshold, Best-n-estimator, Combined; main File
++ Qihang Li: SimRank; Rating Normalization: Deviation for Mean; main File
++ Qian Shi: Cluster Model, main file
++ Vassily Carantino: Cluster Model, main file
 
 Following [suggestions](http://nicercode.github.io/blog/2013-04-05-projects/) by [RICH FITZJOHN](http://nicercode.github.io/about/#Team) (@richfitz). This folder is orgarnized as follows.
 
