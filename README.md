@@ -15,17 +15,17 @@ The designated presenter is Han, Lin
 + Project summary: 
 + 1.Memory-based Algorithm
 + Similarity Weight
-+           a. Pearson Correlation
-+           b. Entropy
-+           c. Mean-Square-difference
-+           d. SimRank :1
+           a. Pearson Correlation
+           b. Entropy
+           c. Mean-Square-difference
+           d. SimRank :1
 + Significance Weighting
 + Selecting Neighbours
-+           a. Weight Threshold
-+           b. Best-n-estimator
-+           c. Combined
+           a. Weight Threshold
+           b. Best-n-estimator
+           c. Combined
 + Rating Normalization
-+           Deviation for Mean
+           Deviation for Mean
 + 2.Cluster Model
 
 	
