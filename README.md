@@ -5,7 +5,6 @@
 Term: Fall 2017
 
 + Group 4
-+ Projec title: 
 + Team members:
 	+ Carantino, Vassily
 	+ Guo, Xinyao
