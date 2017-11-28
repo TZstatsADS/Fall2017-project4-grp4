@@ -7,10 +7,11 @@ Term: Fall 2017
 + Group 4
 + Team members:
 	+ Carantino, Vassily
-	+ Guo, Xinyao
+	+ Guo, Xinyao (xg2257)
 	+ Han, Lin
 	+ Li, Qihang
 	+ Shi, Qian
+	
 The designated presenter is Han, Lin
 + Project summary: 
 + 1.Memory-based Algorithm
