@@ -8,7 +8,7 @@ Term: Fall 2017
 + Team members:
 	+ Carantino, Vassily
 	+ Guo, Xinyao (xg2257)
-	+ Han, Lin
+	+ Han, Lin(lh2810)
 	+ Li, Qihang
 	+ Shi, Qian
 	
@@ -30,7 +30,7 @@ The designated presenter is Han, Lin
 
 	
 **Contribution statement**: ([default](doc/a_note_on_contributions.md))
-+ Xinyao Guo: Data preprocessing; Similarity Weight: Pearson Correlation, Entropy, Mean-square-difference; main.Rmd
++ Xinyao Guo(xg2257): Data preprocessing; Similarity Weight: Pearson Correlation, Entropy, Mean-square-difference; main.Rmd
 + Lin Han(lh2810)--DESIGNED PRESENTOR: Significance Weighting; Selecting Neighbors: Weight Threshold, Best-n-estimator, Combined; main.Rmd
 + Qihang Li: SimRank; Rating Normalization: Deviation for Mean; main.Rmd
 + Qian Shi: Cluster Model, main.Rmd
