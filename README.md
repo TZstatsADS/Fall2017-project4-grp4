@@ -30,7 +30,7 @@ The designated presenter is Han, Lin
 
 	
 **Contribution statement**: ([default](doc/a_note_on_contributions.md))
-+ Xinyao Guo: Similarity Weight: Pearson Correlation, Entropy, Mean-square-difference; main File
++ Xinyao Guo: Data preprocessing; Similarity Weight: Pearson Correlation, Entropy, Mean-square-difference; main File
 + Lin Han(lh2810)--DESIGNED PRESENTOR: Significance Weighting; Selecting Neighbors: Weight Threshold, Best-n-estimator, Combined; main File
 + Qihang Li: SimRank; Rating Normalization: Deviation for Mean; main File
 + Qian Shi: Cluster Model, main file
