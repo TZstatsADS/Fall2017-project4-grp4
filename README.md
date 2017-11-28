@@ -4,11 +4,11 @@
 
 + Group 4
 + Team members:
-	+ Carantino, Vassily
+	+ Carantino, Vassily (vc2434)
 	+ Guo, Xinyao (xg2257)
 	+ Han, Lin(lh2810)
-	+ Li, Qihang
-	+ Shi, Qian
+	+ Li, Qihang(ql2276)
+	+ Shi, Qian(qs2164)
 	
 The designated presenter is Han, Lin
 + Project summary: 
