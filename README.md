@@ -25,9 +25,8 @@ The designated presenter is Han, Lin
            a. Weight Threshold
            b. Best-n-estimator
            c. Combined
-+ Rating Normalization
-           Deviation for Mean
-+ 2.Cluster Model
++ Rating Normalization: Deviation for Mean
++ 2.Cluster Model:2
 
 	
 **Contribution statement**: ([default](doc/a_note_on_contributions.md))
