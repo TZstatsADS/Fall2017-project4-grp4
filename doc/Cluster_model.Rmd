@@ -1,0 +1,313 @@
+---
+title: "Cluster Model"
+author: "Qian Shi (qs2164)"
+date: "11/20/2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+EM_for_CF<- function(data, C, tau){
+  
+  num_of_users<- length(unique(data$User))
+  num_of_movies<- length(unique(data$Movie))
+  list_of_users<- unique(data$User)
+  list_of_movies<- unique(data$Movie)
+  
+  # Initialize parameters
+  mu<- runif(C, 1, 10)
+  mu<- mu/sum(mu)    
+  gamma_array<- array(runif(num_of_movies*6*C, 1, 10), dim=c(num_of_movies, 6, C))
+  for(d in 1:C){gamma_array[, , d]<- gamma_array[, , d]/rowSums(gamma_array[, , d])}
+  
+  pi_mat<- matrix(1/C, ncol=C, nrow=num_of_users)
+  pi_mat_old<- matrix(0, ncol=C, nrow=num_of_users)
+  print("Initialization is done!")
+  
+  iter<- 1
+  while( norm(pi_mat-pi_mat_old, 'O') >= tau){
+    pi_mat_old<- pi_mat
+  
+    # E-step
+    ## Update pi_mat
+    for (i in 1:num_of_users){
+      user <- list_of_users[i]
+      fi_prod<- rep(1, C)
+      for(c in 1:C){
+        sub_train<- data[data$User==user,][c("Movie", "Score")]
+        movies_index<- match(sub_train$Movie, list_of_movies)
+        score<- sub_train$Score
+        all_index<- cbind(movies_index, score)
+        for(j in 1:dim(sub_train)[1]){
+          fi_prod[c]<- fi_prod[c] * gamma_array[all_index[j, 1], all_index[j, 2], c]
+        }
+      }
+      
+      for(c in 1:C){
+        pi_mat[i, c]<- (mu[c] * fi_prod[c]) / (sum(mu * fi_prod))   
+      }
+    }
+    print(paste(iter, "E-step done!"))
+  
+    # M-step
+    ## Update mu
+    mu<- apply(pi_mat, 2, mean)
+  
+    ## Update gamma_array
+    for(c in 1:C){
+      for(score in 1:6){
+        for(movie in list_of_movies){
+          indicator_num<- data$Score == score & data$Movie == movie
+          sub_users_num<- data[indicator_num, ]$User
+          indicator_den<- data$Movie == movie
+          sub_users_den<- data[indicator_den, ]$User
+        
+          movies_index<- match(movie, list_of_movies)
+        
+          if(length(sub_users_num)==0) {gamma_array[movies_index, score, c]<- 0}
+          else{
+            sub_users_index_num<- match(sub_users_num, list_of_users)
+            sub_users_index_den<- match(sub_users_den, list_of_users)
+            gamma_array[movies_index, score, c]<- 
+              sum(pi_mat[sub_users_index_num, c]) / sum(pi_mat[sub_users_index_den, c])
+          }
+        
+        }
+      }
+    }
+  print(paste(iter, "M-step done!"))
+  print(paste("Iteration", iter, "done!"))
+  iter<- iter + 1
+   }  
+   return(list(mu=mu, gamma_array=gamma_array, pi_mat=pi_mat))
+}  
+```
+
+
+```{r}
+EM_for_CF2<- function(data, C, tau){
+  
+  num_of_users<- length(unique(data$User))
+  num_of_movies<- length(unique(data$Movie))
+  list_of_users<- unique(data$User)
+  list_of_movies<- unique(data$Movie)
+  
+  # Initialize parameters
+  mu<- runif(C, 1, 10)
+  mu<- mu/sum(mu) 
+  gamma_array<- array(runif(num_of_movies*6*C, 1, 10), dim=c(num_of_movies, 6, C))
+  for(d in 1:C){gamma_array[, , d]<- gamma_array[, , d]/rowSums(gamma_array[, , d])}
+  
+  pi_mat<- matrix(1, ncol=C, nrow=num_of_users)
+  pi_mat_old<- matrix(0, ncol=C, nrow=num_of_users)
+  print("Initialization is done!")
+  
+  iter<- 1
+  while( norm(pi_mat-pi_mat_old, 'O') >= tau){
+    pi_mat_old<- pi_mat
+  
+    # E-step
+    ## Update pi_mat
+    for (i in 1:num_of_users){
+      user <- list_of_users[i]
+      log_fi_prod<- log(rep(1, C))
+      for(c in 1:C){
+        sub_train<- data[data$User==user,][c("Movie", "Score")]
+        movies_index<- match(sub_train$Movie, list_of_movies)
+        score<- sub_train$Score
+        all_index<- cbind(movies_index, score)
+        for(j in 1:dim(sub_train)[1]){
+          log_fi_prod[c]<- log_fi_prod[c] + log(gamma_array[all_index[j, 1], all_index[j, 2], c])
+        }
+      }
+      
+      max_log_fi=max(log_fi_prod+log(mu))
+      
+      for(c in 1:C){
+        pi_mat[i, c]<- exp(log(mu[c]) + log_fi_prod[c] - (max_log_fi+log((sum(exp(log(mu)+log_fi_prod-max_log_fi)))))) 
+      }
+    }
+    
+    print(paste(iter, "E-step done!"))
+  
+    # M-step
+    ## Update mu
+    mu<- apply(pi_mat, 2, mean)
+  
+    ## Update gamma_array
+    for(c in 1:C){
+      for(score in 1:6){
+        for(movie in list_of_movies){
+          movie_index<- match(movie, list_of_movies)
+          sub_train<- data[data$Movie==movie, ][c("Movie", "User", "Score")]
+          users_index<- match(sub_train$User, list_of_users)
+          
+          gamma_array[movie_index, score, c]<- 
+            sum(pi_mat[users_index, c] * (sub_train$Score==score)) / sum(pi_mat[users_index, c])
+        
+        }
+      }
+    }
+  print(paste(iter, "M-step done!"))
+  print(paste("Iteration", iter, "done!"))
+  iter<- iter + 1
+ }  
+   return(list(mu=mu, gamma_array=gamma_array, pi_mat=pi_mat))
+}  
+```
+
+
+```{r}
+library(dplyr)
+library(pROC)
+# Divide wholoe dataset into two parts: training set & validation set
+movie<- read.csv("./eachmovie_sample/data_train.csv")
+movie_test<- read.csv("./eachmovie_sample/data_test.csv")
+dim(movie)
+
+list_of_users<- unique(movie_train$User)
+num_of_users<- length(unique(movie_train$User))
+
+movie_train<- data_frame()
+movie_valid<- data_frame()
+
+for(user in list_of_users){
+  sub_data<- movie[movie$User==user, ][c("Movie", "User", "Score")]
+  sub_train<- sample_frac(sub_data, 0.7, replace=FALSE)
+  sub_valid<- dplyr::setdiff(sub_data, sub_train)
+  
+  movie_train<- rbind(movie_train, sub_train)   # train data
+  movie_valid<- rbind(movie_valid, sub_valid)    # validate data
+}
+
+```
+
+```{r}
+
+C_range<-c(3, 5, 7, 9)
+MAE<- c()
+ROC<- list()
+
+for (c in 1:length(C_range)){    
+  list_of_movies_valid<- unique(movie_valid$Movie)
+  list_of_users_valid<- unique(movie_valid$User)
+  list_of_movies_train<- unique(movie_train$Movie)
+  list_of_users_train<- unique(movie_train$User)
+    
+  num_of_movies_valid<- length(unique(movie_valid$Movie))
+  num_of_users_valid<- length(unique(movie_valid$User))
+    
+  # I<- list()
+  # for(user in list_of_users_valid){
+  #   I[[user]]<- unique(movie_valid[movie_valid$User==user,]$Movie)
+  # }
+  # 
+  
+    
+  train_params<- EM_for_CF2(movie_train, C=C_range[c], tau=0.01)
+  pi_mat<- train_params$pi_mat
+  gamma_array<- train_params$gamma_array
+  print(paste("C =", C_range[c], "training Step finished!"))
+    
+  #movie_valid$est_Score<- rep(NA, dim(movie_valid)[1])
+  est_Score<-c()
+    
+  for(i in 1:num_of_users_valid){
+    user<- list_of_users_valid[i]
+    user_index<- match(user, list_of_users_train)
+    sub_valid<- movie_valid[movie_valid$User==user, ]
+    #est_scores<- rep(NA, dim(sub_valid)[1])
+       
+    for(j in 1:dim(sub_valid)[1]){
+      movie<- sub_valid$Movie[j]
+      movies_index<- match(movie, list_of_movies_train)
+      if(is.na(movies_index)){S<- NA}
+      else{
+        S<- 0
+        for(score in 1:6){
+          S<- S + score * sum(pi_mat[user_index, ] * gamma_array[movies_index, score, 1:C])
+        }
+      }
+      est_Score<- append(est_Score, round(S))
+    }
+    #movie_valid[movie_valid$User==user, ]$est_Score<- est_scores
+  }
+    
+  MAE[c]<- sum(abs(est_Score - movie_valid$Score), na.rm=TRUE) / length(est_Score)    # Mean absolute error (MAE)
+  # MAE: how big of an error we can expect from the forcast on average
+  ROC[[c]]<- multiclass.roc(movie_test$Score, est_Score)    # Calculate ROC and plot it
+  
+  print(paste("C =", C_range[c], "validation step finished!"))
+}
+```
+
+
+```{r}
+# Without divide training set into training and validation parts
+library(pROC)
+
+movie_train<- read.csv("./eachmovie_sample/data_train.csv")
+movie_test<- read.csv("./eachmovie_sample/data_test.csv")
+
+list_of_users_train<- unique(movie_train$User)
+list_of_movies_train<- unique(movie_train$Movie)
+list_of_users_test<- unique(movie_test$User)
+list_of_movies_test<- unique(movie_test$Movie)
+  
+num_of_users_test<- length(unique(movie_test$User))
+num_of_movies_test<- length(unique(movie_test$Movie))
+  
+C_range<-c(3, 5, 7, 9)
+MAE<- c()
+ROC<- list()
+
+for(c in 1:length(C_range)){  
+  
+  train_params<- EM_for_CF2(movie_train, C=C_range[c], tau=0.01)    
+  pi_mat<- train_params$pi_mat
+  gamma_array<- train_params$gamma_array
+  print(paste("C =", C_range[c], "training Step finished!"))
+    
+  est_Score<-c()
+    
+  for(i in 1:num_of_users_test){
+    user<- list_of_users_test[i]
+    user_index<- match(user, list_of_users_train)
+    sub_test<- movie_test[movie_test$User==user, ]
+    
+    for(j in 1:dim(sub_test)[1]){
+      movie<- sub_test$Movie[j]
+      movies_index<- match(movie, list_of_movies_train)
+      S<- 0
+      for(score in 1:6){
+        S<- S + score * sum(pi_mat[user_index, ] * gamma_array[movies_index, score, 1:C_range[c]])
+      }
+        est_Score<- append(est_Score, S)
+    }
+  }
+    
+  MAE[c]<- sum(abs(est_Score - movie_test$Score)) / length(est_Score)    # Mean absolute error (MAE)
+  # MAE: how big of an error we can expect from the forcast on average
+  ROC[[c]]<- multiclass.roc(movie_test$Score, est_Score)    # Calculate ROC and plot it
+  
+  print(paste("C =", C_range[c], "testing step finished!"))
+}
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
