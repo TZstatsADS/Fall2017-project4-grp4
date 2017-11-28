@@ -5,31 +5,189 @@ output: html_notebook
 ---
 
 ```{r}
-source("/Users/linhan/Desktop/semester3/ADS/fall2017-project4-group4/lib/sign_weight.R")
-source("/Users/linhan/Desktop/semester3/ADS/fall2017-project4-group4/lib/sign_weight1.R")
-source("/Users/linhan/Desktop/semester3/ADS/fall2017-project4-group4/lib/w_threshold.R")
-source("/Users/linhan/Desktop/semester3/ADS/fall2017-project4-group4/lib/best_n.R")
-source("/Users/linhan/Desktop/semester3/ADS/fall2017-project4-group4/lib/combined.R")
+source("../lib/sign_weight.R")
+source("../lib/sign_weight1.R")
+source("../lib/w_threshold.R")
+source("../lib/best_n.R")
+source("../lib/combined.R")
 ```
+
+#Data Processing
 
 ```{r}
-mv_train<- read.csv("../data/train2.csv",header = T, stringsAsFactors = F)
-mv_test<- read.csv("../data/test2.csv",header = T, stringsAsFactors = F)
 ms_train<- read.csv("../data/MS_train2.csv",header = T, stringsAsFactors = F)
 ms_test<- read.csv("../data/MS_test2.csv",header = T, stringsAsFactors = F)
+
+mv_train<- read.csv("../data/train2.csv",header = T, stringsAsFactors = F)
+mv_test<- read.csv("../data/test2.csv",header = T, stringsAsFactors = F)
+
 ```
 
-Algorithm One: Memory-based Algorithm
-1. Similarity Weight
-1(a)Pearson Correlation
+#Algorithm One: Memory-based Algorithm
 
-1(b)Entropy
+##1. Similarity Weight
 
-1.(c)Mean-square-difference
+###1(a)Pearson Correlation
 
-1.(d)SimRank
+```{r}
+### Dataset 1
+ms_train<-data.frame(ms_train[,-c(1,2)],row.names = ms_train[,2])
+ms_train[is.na(ms_train)]=0
+mv_cor<- cor(t(ms_train),use="pairwise.complete.obs",method="pearson")
+pearson1<-mv_cor
+### Dataset 2
+train2<-read.csv("train2.csv",header=T)
+mv_train<-data.frame(mv_train[,-1],row.names = mv_train[,1])
+mv_cor2<- cor(t(mv_train),use="pairwise.complete.obs",method="pearson")
+mv_cor2[is.na(mv_cor2)]<-0
+pearson2<-mv_cor2
+```
 
-2. Significance Weighting
+###1(b)Entropy
+Reference: https://arxiv.org/pdf/1201.4210.pdf
+Reference: http://pythonfiddle.com/shannon-entropy-calculation/
+The first step is to calculate the entropy between users. We apply different approaches to the two dataset based on two papers.
+For the first one, 
+Note: this calculation requires a long time to run in R. To reproduce the code below, please refer to ENTROPY.ipynb in doc folder.
+
+```{r}
+##Dataset1
+N_USER = nrow(ms_train)
+ENPY1 = matrix(data = NA, nrow=N_USER, ncol=N_USER)
+
+for(i in 1:N_USER){
+  #item to it-self has entropy 0
+  ENPY1[i,i] = 0.
+  
+  for(j in i:N_USER){
+    if (j>i){
+      Ri <-ms_train[i,]
+      Rj <-ms_train[j,]
+      ##Dataset 1
+      Dij <-abs(Ri-Rj)
+      if (length(Dij)>0){
+        ed=0
+        for (d in unique(Dij)){
+          Pd=length(d)/length(Dij)
+          if (Pd>0){
+            ed=ed-Pd*log(Pd,base = 2)
+          }
+          ENPY1[i,j]=ed
+          ENPY1[j,i]=ed
+        }
+      }
+      else{
+        ENPY1[i,j]=999
+        ENPY1[j,i]=999
+      }
+    }
+  }
+}
+
+
+##Dataset2
+N_USER = nrow(mv_train)
+ENPY2 = matrix(data = NA, nrow=N_USER, ncol=N_USER)
+
+for(i in 1:N_USER){
+  #item to it-self has entropy 0
+  ENPY2[i,i] = 0.
+  
+  for(j in i:N_USER){
+    if (j>i){
+      Ri <-mv_train[i,]
+      Rj <-mv_train[j,]
+      ##Dataset 2
+      Dij <-(Ri-Rj)[!is.na(Ri-Rj)]
+      if (length(Dij)>0){
+        ed=0
+        for (d in unique(Dij)){
+          Pd=length(d)/length(Dij)
+          if (Pd>0){
+            ed=ed-Pd*log(Pd,base = 2)
+          }
+          ENPY2[i,j]=ed
+          ENPY2[j,i]=ed
+        }
+      }
+      else{
+        ENPY2[i,j]=999
+        ENPY2[j,i]=999
+      }
+    }
+  }
+}
+rownames(ENPY1)<-rownames(ms_train)
+colnames(ENPY1)<-rownames(ms_train)
+rownames(ENPY2)<-rownmaes(mv_train)
+colnames(ENPY2)<-rownmaes(mv_train)
+
+```
+
+Next, we convert entropy to similarity scores. 
+
+```{r}
+###Dataset 1
+entropy1<-1-ENPY1
+###Dataset 2
+df<-ENPY2
+df[df==999]<--999
+m<-max(df)
+#min=0,max=3.442524
+#MAX-MIN normalization:
+entropy2<-(m-ENPY2)/(m-0)
+entropy2[new.entropy2<0]<-0
+```
+
+###1.(c)Mean-square-difference
+
+To get the similarity score based on mean square difference, we use different approaches for the two datasets.
+For the first one, since we already convert the data to binary, we simply apply the pairwise euclidean distance between users, square them, calculate the mean squared difference.
+For the second one, since the data is not binary and it takes long time to calculate pairwise distance, we use matrix operation instead to get the mean square difference.
+After we get the mean square difference for the two dataset, we convert these disimilarity scores to similarity scores.
+
+```{r}
+###Dataset 1
+sqrt.dissim<-dist(ms_train,method = "euclidean",diag = T,upper = T)
+mse1<-(sqrt.dissim^2)/ncol(ms_train)
+mmm1<-as.data.frame(mse1)
+mse.similarity1<-1-mmm1
+mse1<-as.matrix(mse.similarity1)
+
+###Dataset 2
+train2<-read.csv("../data/train2.csv",header = T, stringsAsFactors = F)
+train2<-data.frame(train2[,-1],row.names = train2[,1])
+i_matrix<-!is.na(train2)
+#2ab
+dff<-train2
+dff[is.na(dff)]=0
+two.a.b<-2*as.matrix(dff) %*% t(dff)
+sqr<-train2^2
+sqr[is.na(sqr)]=0
+#a^2
+a.square<-sqr %*% t(i_matrix)
+#b^2
+b.square<-i_matrix %*% t(sqr)
+#squared difference
+se<-a.square+b.square-two.a.b
+#denominator(number of common rating)
+common.no<-i_matrix %*% t(i_matrix)
+#MSE
+mse2<-se/common.no
+mean.square.diff2<-as.data.frame(mse2)
+#MIN-MAX normalization 
+max(mean.square.diff2,na.rm = T) #max=25
+min(mean.square.diff2,na.rm = T) #min=0
+mse.similarity2<-(25-mean.square.diff2)/25
+#deal with NA values
+mse.similarity2[is.na(mse.similarity2)]=0
+mse2<-mse.similarity2
+```
+
+###1.(d)SimRank
+
+##2. Significance Weighting
+
 ```{r}
 run.sign_weight=TRUE
 run.sign_weight1=TRUE
@@ -46,9 +204,9 @@ if(run.sign_weight1){
 }
 ```
 
-3.Selecting Neighbors
+##3.Selecting Neighbors
 
-3(a)Weight Threshold
+###3(a)Weight Threshold
 
 ```{r}
 run.w_threshold=TRUE 
@@ -133,7 +291,7 @@ if(run.w_threshold){
 #write.csv(entropy2.sw.wt0.3, "../output/entropy/entropy2.sw.wt0.3.csv")
 ```
 
-3(b)Best-n-estimator
+###3(b)Best-n-estimator
 ```{r}
 if(run.best_n){
 #################dataset1####################n= 50,100,150
@@ -230,7 +388,7 @@ if(run.best_n){
 # write.csv(entropy2.sw.bn200, "../output/entropy/entropy2.sw.bn200.csv")
 ```
 
-3(c)Combined
+###3(c)Combined
 ```{r}
 if(run.combined){
   # pearson1.com<- combined(pearson1, n=150, t=0.4)
@@ -272,7 +430,7 @@ if(run.combined){
 # write.csv(entropy2.sw.com,"../output/entropy/entropy2.sw.com.csv")
 ```
 
-4.Rating Normalization
+##4.Rating Normalization
 
 
-Algorithm Two: Model-based Algorithm------Cluster Models
+#Algorithm Two: Model-based Algorithm------Cluster Models
