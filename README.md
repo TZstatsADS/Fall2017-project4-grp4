@@ -2,8 +2,6 @@
 
 ### [Project Description](doc/project4_desc.md)
 
-Term: Fall 2017
-
 + Group 4
 + Team members:
 	+ Carantino, Vassily
@@ -16,16 +14,16 @@ The designated presenter is Han, Lin
 + Project summary: 
 + 1.Memory-based Algorithm
 + Similarity Weight
-           a. Pearson Correlation
-           b. Entropy
-           c. Mean-Square-difference
-           d. SimRank :1
-+ Significance Weighting
+           a. Pearson Correlation: 1,2
+           b. Entropy: 1,2
+           c. Mean-Square-difference: 1,2
+           d. SimRank :1
++ Significance Weighting: 1,2
 + Selecting Neighbours
-           a. Weight Threshold
-           b. Best-n-estimator
-           c. Combined
-+ Rating Normalization: Deviation for Mean
+           a. Weight Threshold: 1,2
+           b. Best-n-estimator: 1,2
+           c. Combined: 1,2
++ Rating Normalization: Deviation for Mean: 1 ,2
 + 2.Cluster Model:2
 
 	
