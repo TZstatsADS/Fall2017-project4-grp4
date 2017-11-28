@@ -28,11 +28,11 @@ The designated presenter is Han, Lin
 
 	
 **Contribution statement**: ([default](doc/a_note_on_contributions.md))
-+ Xinyao Guo(xg2257): Data preprocessing; Similarity Weight: Pearson Correlation, Entropy, Mean-square-difference; main.Rmd
-+ Lin Han(lh2810)--DESIGNED PRESENTOR: Significance Weighting; Selecting Neighbors: Weight Threshold, Best-n-estimator, Combined; main.Rmd
-+ Qihang Li: SimRank; Rating Normalization: Deviation for Mean; main.Rmd
-+ Qian Shi: Cluster Model, main.Rmd
-+ Vassily Carantino: Cluster Model, main.Rmd
++ Xinyao Guo(xg2257): Data preprocessing;  Similarity Weight: Pearson Correlation, Entropy, Mean-square-difference;  main.Rmd
++ Lin Han(lh2810)--DESIGNED PRESENTOR: Significance Weighting;  Selecting Neighbors: Weight Threshold, Best-n-estimator, Combined;  main.Rmd
++ Qihang Li: SimRank;  Rating Normalization: Deviation for Mean;  main.Rmd
++ Qian Shi: Cluster Model;  main.Rmd
++ Vassily Carantino: Cluster Model;  main.Rmd
 
 Following [suggestions](http://nicercode.github.io/blog/2013-04-05-projects/) by [RICH FITZJOHN](http://nicercode.github.io/about/#Team) (@richfitz). This folder is orgarnized as follows.
 
