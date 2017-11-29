@@ -46,14 +46,16 @@ pearson2<-mv_cor2
 ```
 
 ###1(b)Entropy
-Reference: https://arxiv.org/pdf/1201.4210.pdf
-Reference: http://pythonfiddle.com/shannon-entropy-calculation/
-The first step is to calculate the entropy between users. We apply different approaches to the two dataset based on two papers.
-For the first one, 
+
+The first step is to calculate the entropy between users. 
 Note: this calculation requires a long time to run in R. To reproduce the code below, please refer to ENTROPY.ipynb in doc folder.
 
+Reference: https://arxiv.org/pdf/1201.4210.pdf
+
+Reference: http://pythonfiddle.com/shannon-entropy-calculation/
+
 ```{r}
-##Dataset1
+### Dataset1
 N_USER = nrow(ms_train)
 ENPY1 = matrix(data = NA, nrow=N_USER, ncol=N_USER)
 
@@ -87,7 +89,7 @@ for(i in 1:N_USER){
 }
 
 
-##Dataset2
+### Dataset2
 N_USER = nrow(mv_train)
 ENPY2 = matrix(data = NA, nrow=N_USER, ncol=N_USER)
 
@@ -129,9 +131,10 @@ colnames(ENPY2)<-rownmaes(mv_train)
 Next, we convert entropy to similarity scores. 
 
 ```{r}
-###Dataset 1
+### Dataset 1
 entropy1<-1-ENPY1
-###Dataset 2
+
+### Dataset 2
 df<-ENPY2
 df[df==999]<--999
 m<-max(df)
@@ -144,19 +147,21 @@ entropy2[new.entropy2<0]<-0
 ###1.(c)Mean-square-difference
 
 To get the similarity score based on mean square difference, we use different approaches for the two datasets.
-For the first one, since we already convert the data to binary, we simply apply the pairwise euclidean distance between users, square them, calculate the mean squared difference.
-For the second one, since the data is not binary and it takes long time to calculate pairwise distance, we use matrix operation instead to get the mean square difference.
+For the first one, since we already convert the data to binary, we simply apply the pairwise euclidean distance between users, square them, then calculate the mean squared difference.
+
+For the second one, since the data is not binary and it takes a long time to calculate pairwise distance, we use matrix operation instead to get the mean square difference.
+
 After we get the mean square difference for the two dataset, we convert these disimilarity scores to similarity scores.
 
 ```{r}
-###Dataset 1
+### Dataset 1
 sqrt.dissim<-dist(ms_train,method = "euclidean",diag = T,upper = T)
 mse1<-(sqrt.dissim^2)/ncol(ms_train)
 mmm1<-as.data.frame(mse1)
 mse.similarity1<-1-mmm1
 mse1<-as.matrix(mse.similarity1)
 
-###Dataset 2
+### Dataset 2
 train2<-read.csv("../data/train2.csv",header = T, stringsAsFactors = F)
 train2<-data.frame(train2[,-1],row.names = train2[,1])
 i_matrix<-!is.na(train2)
