@@ -44,6 +44,14 @@ EM_for_CF<- function(data, C, tau){
         all_index<- cbind(movies_index, score)
         for(j in 1:dim(sub_train)[1]){
           fi_prod[c]<- fi_prod[c] * gamma_array[all_index[j, 1], all_index[j, 2], c]
+          if(is.na(fi_prod[c])){
+            print('user')
+            print(i)
+            print('gamma')
+            print(j)
+            print(gamma_array[all_index[j, 1], all_index[j, 2], c])
+            break
+          }
         }
       }
       
@@ -122,6 +130,14 @@ EM_for_CF2<- function(data, C, tau){
         all_index<- cbind(movies_index, score)
         for(j in 1:dim(sub_train)[1]){
           log_fi_prod[c]<- log_fi_prod[c] + log(gamma_array[all_index[j, 1], all_index[j, 2], c])
+          if(is.na(log_fi_prod[c])){
+            print('user')
+            print(i)
+            print('gamma')
+            print(j)
+            print(log(gamma_array[all_index[j, 1], all_index[j, 2], c]))
+            break
+          }
         }
       }
       
@@ -130,6 +146,7 @@ EM_for_CF2<- function(data, C, tau){
       for(c in 1:C){
         pi_mat[i, c]<- exp(log(mu[c]) + log_fi_prod[c] - (max_log_fi+log((sum(exp(log(mu)+log_fi_prod-max_log_fi)))))) 
       }
+      
     }
     
     print(paste(iter, "E-step done!"))
@@ -145,10 +162,20 @@ EM_for_CF2<- function(data, C, tau){
           movie_index<- match(movie, list_of_movies)
           sub_train<- data[data$Movie==movie, ][c("Movie", "User", "Score")]
           users_index<- match(sub_train$User, list_of_users)
-          
-          gamma_array[movie_index, score, c]<- 
-            sum(pi_mat[users_index, c] * (sub_train$Score==score)) / sum(pi_mat[users_index, c])
-        
+          if(sum(pi_mat[users_index, c])==0){
+            gamma_array[movie_index, score, c]<- 0
+          }
+          else{
+            gamma_array[movie_index, score, c]<- sum(pi_mat[users_index, c] * (sub_train$Score==score)) / sum(pi_mat[users_index, c])
+          }
+          if(is.na(gamma_array[movie_index, score, c])){
+            print('gamma update !!')
+            print(movie)
+            print(movie_index)
+            print(score)
+            print(c)
+            lol
+          }
         }
       }
     }
@@ -165,8 +192,9 @@ EM_for_CF2<- function(data, C, tau){
 library(dplyr)
 library(pROC)
 # Divide wholoe dataset into two parts: training set & validation set
-movie<- read.csv("./eachmovie_sample/data_train.csv")
-movie_test<- read.csv("./eachmovie_sample/data_test.csv")
+
+movie<- read.csv("Users/vc2434/Desktop/Fall2017-project4-grp4-master/data/data_train.csv")
+movie_test<- read.csv("/Users/vc2434/Desktop/Fall2017-project4-grp4-master/data/data_test.csv")
 dim(movie)
 
 list_of_users<- unique(movie_train$User)
@@ -250,8 +278,9 @@ for (c in 1:length(C_range)){
 # Without divide training set into training and validation parts
 library(pROC)
 
-movie_train<- read.csv("./eachmovie_sample/data_train.csv")
-movie_test<- read.csv("./eachmovie_sample/data_test.csv")
+
+movie_train<- read.csv("/Users/vc2434/Desktop/Fall2017-project4-grp4-master/data/data_train.csv")
+movie_test<- read.csv("/Users/vc2434/Desktop/Fall2017-project4-grp4-master/data/data_test.csv")
 
 list_of_users_train<- unique(movie_train$User)
 list_of_movies_train<- unique(movie_train$Movie)
@@ -261,7 +290,8 @@ list_of_movies_test<- unique(movie_test$Movie)
 num_of_users_test<- length(unique(movie_test$User))
 num_of_movies_test<- length(unique(movie_test$Movie))
   
-C_range<-c(3, 5, 7, 9)
+#C_range<-c(3, 5, 7, 9)
+C_range<-c(3)
 MAE<- c()
 ROC<- list()
 
