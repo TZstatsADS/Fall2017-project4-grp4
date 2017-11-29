@@ -507,6 +507,7 @@ write.csv(simrank.sw.com, "/Users/linhan/Desktop/semester3/ADS/fall2017-project4
 ```
 
 Since the files are too large, we put the output file in following links:
+
 mse:  https://drive.google.com/a/columbia.edu/file/d/11qNIctCBBnH8m3uYsNSfXuDfLUc1fBDE/view?usp=sharing
 
 entropy: https://drive.google.com/a/columbia.edu/file/d/1bsSV5B3XB-sua_VZzvwlLUSZ5EXwpZfc/view?usp=sharing
