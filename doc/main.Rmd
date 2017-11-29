@@ -556,7 +556,7 @@ for (c in 1:length(C_range)){
   movie_train<- data_frame()
   movie_valid<- data_frame()
 
-  # Divide the whloe traing set into training and validation sets
+  # Split the whloe traing set into training and validation sets
   for(user in list_of_users){
     sub_data<- movie[movie$User==user, ][c("Movie", "User", "Score")]
     sub_train<- sample_frac(sub_data, 0.7, replace=FALSE)
