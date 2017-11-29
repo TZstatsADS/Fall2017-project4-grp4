@@ -1,0 +1,518 @@
+---
+title: "Project 4 - Example Main Script"
+author: "Lin Han, Xinyao Guo, Qihang Li, Qian Shi, Vassily Carantino"
+output: html_notebook
+---
+
+```{r}
+source("../lib/sign_weight.R")
+source("../lib/sign_weight1.R")
+source("../lib/w_threshold.R")
+source("../lib/best_n.R")
+source("../lib/combined.R")
+```
+
+#Data Processing
+
+```{r}
+ms_train<- read.csv("../data/MS_train2.csv",header = T, stringsAsFactors = F)
+ms_test<- read.csv("../data/MS_test2.csv",header = T, stringsAsFactors = F)
+
+mv_train<- read.csv("../data/train2.csv",header = T, stringsAsFactors = F)
+mv_test<- read.csv("../data/test2.csv",header = T, stringsAsFactors = F)
+
+```
+
+#Algorithm One: Memory-based Algorithm
+
+##1. Similarity Weight
+
+###1(a)Pearson Correlation
+
+```{r}
+### Dataset 1
+ms_train<-data.frame(ms_train[,-c(1,2)],row.names = ms_train[,2])
+ms_train[is.na(ms_train)]=0
+mv_cor<- cor(t(ms_train),use="pairwise.complete.obs",method="pearson")
+pearson1<-mv_cor
+### Dataset 2
+train2<-read.csv("train2.csv",header=T)
+mv_train<-data.frame(mv_train[,-1],row.names = mv_train[,1])
+mv_cor2<- cor(t(mv_train),use="pairwise.complete.obs",method="pearson")
+mv_cor2[is.na(mv_cor2)]<-0
+pearson2<-mv_cor2
+```
+
+###1(b)Entropy
+Reference: https://arxiv.org/pdf/1201.4210.pdf
+Reference: http://pythonfiddle.com/shannon-entropy-calculation/
+The first step is to calculate the entropy between users. We apply different approaches to the two dataset based on two papers.
+For the first one, 
+Note: this calculation requires a long time to run in R. To reproduce the code below, please refer to ENTROPY.ipynb in doc folder.
+
+```{r}
+##Dataset1
+N_USER = nrow(ms_train)
+ENPY1 = matrix(data = NA, nrow=N_USER, ncol=N_USER)
+
+for(i in 1:N_USER){
+  #item to it-self has entropy 0
+  ENPY1[i,i] = 0.
+  
+  for(j in i:N_USER){
+    if (j>i){
+      Ri <-ms_train[i,]
+      Rj <-ms_train[j,]
+      ##Dataset 1
+      Dij <-abs(Ri-Rj)
+      if (length(Dij)>0){
+        ed=0
+        for (d in unique(Dij)){
+          Pd=length(d)/length(Dij)
+          if (Pd>0){
+            ed=ed-Pd*log(Pd,base = 2)
+          }
+          ENPY1[i,j]=ed
+          ENPY1[j,i]=ed
+        }
+      }
+      else{
+        ENPY1[i,j]=999
+        ENPY1[j,i]=999
+      }
+    }
+  }
+}
+
+
+##Dataset2
+N_USER = nrow(mv_train)
+ENPY2 = matrix(data = NA, nrow=N_USER, ncol=N_USER)
+
+for(i in 1:N_USER){
+  #item to it-self has entropy 0
+  ENPY2[i,i] = 0.
+  
+  for(j in i:N_USER){
+    if (j>i){
+      Ri <-mv_train[i,]
+      Rj <-mv_train[j,]
+      ##Dataset 2
+      Dij <-(Ri-Rj)[!is.na(Ri-Rj)]
+      if (length(Dij)>0){
+        ed=0
+        for (d in unique(Dij)){
+          Pd=length(d)/length(Dij)
+          if (Pd>0){
+            ed=ed-Pd*log(Pd,base = 2)
+          }
+          ENPY2[i,j]=ed
+          ENPY2[j,i]=ed
+        }
+      }
+      else{
+        ENPY2[i,j]=999
+        ENPY2[j,i]=999
+      }
+    }
+  }
+}
+rownames(ENPY1)<-rownames(ms_train)
+colnames(ENPY1)<-rownames(ms_train)
+rownames(ENPY2)<-rownmaes(mv_train)
+colnames(ENPY2)<-rownmaes(mv_train)
+
+```
+
+Next, we convert entropy to similarity scores. 
+
+```{r}
+###Dataset 1
+entropy1<-1-ENPY1
+###Dataset 2
+df<-ENPY2
+df[df==999]<--999
+m<-max(df)
+#min=0,max=3.442524
+#MAX-MIN normalization:
+entropy2<-(m-ENPY2)/(m-0)
+entropy2[new.entropy2<0]<-0
+```
+
+###1.(c)Mean-square-difference
+
+To get the similarity score based on mean square difference, we use different approaches for the two datasets.
+For the first one, since we already convert the data to binary, we simply apply the pairwise euclidean distance between users, square them, calculate the mean squared difference.
+For the second one, since the data is not binary and it takes long time to calculate pairwise distance, we use matrix operation instead to get the mean square difference.
+After we get the mean square difference for the two dataset, we convert these disimilarity scores to similarity scores.
+
+```{r}
+###Dataset 1
+sqrt.dissim<-dist(ms_train,method = "euclidean",diag = T,upper = T)
+mse1<-(sqrt.dissim^2)/ncol(ms_train)
+mmm1<-as.data.frame(mse1)
+mse.similarity1<-1-mmm1
+mse1<-as.matrix(mse.similarity1)
+
+###Dataset 2
+train2<-read.csv("../data/train2.csv",header = T, stringsAsFactors = F)
+train2<-data.frame(train2[,-1],row.names = train2[,1])
+i_matrix<-!is.na(train2)
+#2ab
+dff<-train2
+dff[is.na(dff)]=0
+two.a.b<-2*as.matrix(dff) %*% t(dff)
+sqr<-train2^2
+sqr[is.na(sqr)]=0
+#a^2
+a.square<-sqr %*% t(i_matrix)
+#b^2
+b.square<-i_matrix %*% t(sqr)
+#squared difference
+se<-a.square+b.square-two.a.b
+#denominator(number of common rating)
+common.no<-i_matrix %*% t(i_matrix)
+#MSE
+mse2<-se/common.no
+mean.square.diff2<-as.data.frame(mse2)
+#MIN-MAX normalization 
+max(mean.square.diff2,na.rm = T) #max=25
+min(mean.square.diff2,na.rm = T) #min=0
+mse.similarity2<-(25-mean.square.diff2)/25
+#deal with NA values
+mse.similarity2[is.na(mse.similarity2)]=0
+mse2<-mse.similarity2
+```
+
+###1.(d)SimRank
+
+##2. Significance Weighting
+
+```{r}
+run.sign_weight=TRUE
+run.sign_weight1=TRUE
+run.w_threshold=TRUE 
+run.best_n=TRUE
+run.combined=TRUE
+if(run.sign_weight){
+  mse2.sw<- sign_w(sw= mse2[ ,-1], data= mv_train)
+  pearson2.sw<- sign_w(sw= pearson2[ ,-1], data= mv_train)
+  entropy2.sw <- sign_w(sw= entropy2[ ,-1], data=mv_train)
+}
+if(run.sign_weight1){
+  mse1.sw<- sign_w1(sw= mse1[ ,-1], data= ms_train)
+  pearson1.sw<- sign_w1(sw= pearson1[ ,-1], data= ms_train)
+  entropy1.sw<- sign_w1(sw= entropy1[ ,-1], data = ms_train)
+  simrank.sw<- sign_w1(sw= simrank, data = ms_train)
+}
+```
+
+##3.Selecting Neighbors
+
+###3(a)Weight Threshold
+
+
+```{r}
+if(run.w_threshold){
+# ###############dataset1#######################0.5,0.6, 0.7
+#  pearson1.wt0.4<-cwt(pearson1[ ,-1], t= 0.4)
+#   pearson1.wt0.5<-cwt(pearson1[ ,-1], t= 0.5)
+#   pearson1.wt0.6<-cwt(pearson1[ ,-1], t= 0.6)
+#   pearson2.wt0.7<-cwt(pearson2[ ,-1], t= 0.7)
+#  pearson1.sw.wt0.4<- cwt(pearson1.sw, t= 0.4)
+#   pearson1.sw.wt0.5<- cwt(pearson1.sw, t= 0.5)
+#   pearson1.sw.wt0.6<- cwt(pearson1.sw, t= 0.6)
+#   pearson1.sw.wt0.7<- cwt(pearson1.sw, t= 0.7)
+# # ################dataset2######################0.5,0.6,0.7
+#    pearson2.wt0.5<-cwt(pearson2[ ,-1], t= 0.5)
+#    pearson2.wt0.6<-cwt(pearson2[ ,-1], t= 0.6)
+
+#    pearson2.sw.wt0.5<- cwt(pearson2.sw, t= 0.5)
+#    pearson2.sw.wt0.6<- cwt(pearson2.sw, t= 0.6)
+
+# #################dataset1######################mse1:0.08, 0.1
+# mse1.wt0.08<- cwt(mse1[ ,-1], t=0.08)
+# mse1.wt0.1<- cwt(mse1[ ,-1], t=0.1)
+# mse1.sw.wt0.08<- cwt(mse1.sw, t=0.08)
+# mse1.sw.wt0.1<- cwt(mse1.sw, t=0.1)
+# # #################dataset2######################mse:0-25:5
+#  mse2.wt0.85<- cwt(mse2[ ,-1], t=0.85)
+
+# mse2.sw.wt0.85<- cwt(mse2.sw, t =0.85)
+
+#   ####################dataset1#######################0.6, 0.8
+# entropy1.wt0.8<-cwt(entropy1[ ,-1], t= 0.8)
+#  entropy1.sw.wt0.7<- cwt(entropy1.sw, t= 0.7)
+#  ###################dataset2######################
+# entropy2.wt0.3<-cwt(entropy2[ ,-1], t= 0.3)
+
+# entropy2.sw.wt0.3<- cwt(entropy2.sw, t= 0.3)
+
+#   #############simrank dataset1################
+# simrank.wt0.08<- cwt(simrank, t= 0.08)
+# simrank.sw.wt0.07 <- cwt(simrank.sw, t= 0.07)
+}
+```
+
+```{r}
+write.csv(pearson1.wt0.4, "/Users/linhan/Desktop/semester3/ADS/fall2017-project4-group4/output/pearson_new/pearson1.wt0.4.csv")
+write.csv(pearson1.wt0.5, "/Users/linhan/Desktop/semester3/ADS/fall2017-project4-group4/output/pearson_new/pearson1.wt0.5.csv")
+write.csv(pearson1.wt0.6, "/Users/linhan/Desktop/semester3/ADS/fall2017-project4-group4/output/pearson_new/pearson1.wt0.6.csv")
+
+
+write.csv(pearson1.sw.wt0.4, "/Users/linhan/Desktop/semester3/ADS/fall2017-project4-group4/output/pearson_new/pearson1.sw.wt0.5.csv")
+write.csv(pearson1.sw.wt0.5, "/Users/linhan/Desktop/semester3/ADS/fall2017-project4-group4/output/pearson_new/pearson1.sw.wt0.5.csv")
+write.csv(pearson1.sw.wt0.6, "/Users/linhan/Desktop/semester3/ADS/fall2017-project4-group4/output/pearson_new/pearson1.sw.wt0.6.csv")
+
+
+write.csv(pearson2.wt0.5, "/Users/linhan/Desktop/semester3/ADS/fall2017-project4-group4/output/pearson_new/pearson2.wt0.5.csv")
+write.csv(pearson2.wt0.6, "/Users/linhan/Desktop/semester3/ADS/fall2017-project4-group4/output/pearson_new/pearson2.wt0.6.csv")
+
+write.csv(pearson2.sw.wt0.5, "/Users/linhan/Desktop/semester3/ADS/fall2017-project4-group4/output/pearson_new/pearson2.sw.wt0.5.csv")
+write.csv(pearson2.sw.wt0.6, "/Users/linhan/Desktop/semester3/ADS/fall2017-project4-group4/output/pearson_new/pearson2.sw.wt0.4.csv")
+
+######################################mse#############################
+write.csv(mse1.wt0.08, "/Users/linhan/Desktop/semester3/ADS/fall2017-project4-group4/output/mse_new/mse1.wt0.08.csv")
+write.csv(mse1.wt0.1, "/Users/linhan/Desktop/semester3/ADS/fall2017-project4-group4/output/mse_new/mse1.wt0.1.csv")
+write.csv(mse1.sw.wt0.08, "/Users/linhan/Desktop/semester3/ADS/fall2017-project4-group4/output/mse_new/mse1.sw.wt0.002.csv")
+write.csv(mse1.sw.wt0.1, "/Users/linhan/Desktop/semester3/ADS/fall2017-project4-group4/output/mse_new/mse1.sw.wt0.1.csv")
+
+write.csv(mse2.wt0.85, "/Users/linhan/Desktop/semester3/ADS/fall2017-project4-group4/output/mse_new/mse2.wt0.85.csv")
+#write.csv(mse2.wt0.95, "/Users/linhan/Desktop/semester3/ADS/fall2017-project4-group4/output/mse_new/mse2.wt0.95.csv")
+write.csv(mse2.sw.wt0.85, "/Users/linhan/Desktop/semester3/ADS/fall2017-project4-group4/output/mse_new/mse2.sw.wt0.85.csv")
+#write.csv(mse2.sw.wt0.95, "/Users/linhan/Desktop/semester3/ADS/fall2017-project4-group4/output/mse_new/mse2.sw.wt0.95.csv")
+##################entropy###############################################
+write.csv(entropy1.wt0.8, "/Users/linhan/Desktop/semester3/ADS/fall2017-project4-group4/output/entropy_new/entropy1.wt0.8.csv")
+write.csv(entropy1.sw.wt0.7, "/Users/linhan/Desktop/semester3/ADS/fall2017-project4-group4/output/entropy_new/entropy1.sw.wt0.7.csv")
+
+write.csv(entropy2.wt0.3, "/Users/linhan/Desktop/semester3/ADS/fall2017-project4-group4/output/entropy_new/entropy2.wt0.3.csv")
+
+write.csv(entropy2.sw.wt0.3, "/Users/linhan/Desktop/semester3/ADS/fall2017-project4-group4/output/entropy_new/entropy2.sw.wt0.3.csv")
+
+###################Simrank##############
+write.csv(simrank.wt0.08, "/Users/linhan/Desktop/semester3/ADS/fall2017-project4-group4/output/simrank_new/simrank.wt0.08.csv")
+write.csv(simrank.sw.wt0.07, "/Users/linhan/Desktop/semester3/ADS/fall2017-project4-group4/output/simrank_new/simrank.sw.wt0.07.csv")
+```
+
+###3(b)Best-n-estimator
+
+```{r}
+if(run.best_n){
+#################dataset1####################n= 10,15
+  pearson1.bn10<- best_n(pearson1[ ,-1], 10)
+  pearson1.bn10<- data.frame(pearson1.bn10, row.names = pearson1[ ,1])
+  pearson1.bn15<- best_n(pearson1[ ,-1], 15)
+  pearson1.bn15<- data.frame(pearson1.bn15, row.names = pearson1[ ,1])
+  pearson1.sw.bn15<- best_n(pearson1.sw, 15)
+  pearson1.sw.bn15<- data.frame(pearson1.sw.bn15, row.names = pearson1[ ,1])
+  pearson1.sw.bn10<- best_n(pearson1.sw, 10)
+  pearson1.sw.bn10<- data.frame(pearson1.sw.bn10, row.names = pearson1[ ,1])
+###############dataset2####################n= 10,15
+  pearson2.bn15<- best_n(pearson2[ ,-1], 15)
+  pearson2.bn15<-data.frame(pearson2.bn15, row.names = pearson2[ ,1])
+  pearson2.bn10<- best_n(pearson2[ ,-1], 10)
+  pearson2.bn10<-data.frame(pearson2.bn10, row.names = pearson2[ ,1])
+  pearson2.sw.bn15<- best_n(pearson2.sw, 15)
+  pearson2.sw.bn15<- data.frame(pearson2.sw.bn15,row.names = pearson2[ ,1])
+  pearson2.sw.bn10<- best_n(pearson2.sw, 10)
+  pearson2.sw.bn10<- data.frame(pearson2.sw.bn10,row.names = pearson2[ ,1])
+##############dataset1################### n= 10,15
+  mse1.bn10<- best_n(mse1[ ,-1],10)
+  mse1.bn15<- best_n(mse1[ ,-1],15)
+  mse1.sw.bn10<- best_n(mse1.sw,10)
+  mse1.sw.bn15<- best_n(mse1.sw,15)
+##############dataset2##############n=100,150
+  mse2.bn10<- best_n(mse2[ ,-1],10)
+  mse2.bn15<- best_n(mse2[ ,-1],15)
+  mse2.sw.bn10<- best_n(mse2.sw,10)
+  mse2.sw.bn15<- best_n(mse2.sw,15)
+###############entropy: dataset1#######
+entropy1.bn10<- best_n(entropy1[ ,-1], 10)
+entropy1.bn10<- data.frame(entropy1.bn10, row.names = entropy1[ ,1])
+entropy1.bn15<- best_n(entropy1[ ,-1], 15)
+entropy1.bn15<- data.frame(entropy1.bn15, row.names = entropy1[ ,1])
+
+entropy1.sw.bn10<- best_n(entropy1.sw, 10)
+entropy1.sw.bn10<- data.frame(entropy1.sw.bn10, row.names = entropy1[ ,1])
+entropy1.sw.bn15<- best_n(entropy1.sw, 15)
+entropy1.sw.bn15<- data.frame(entropy1.sw.bn15, row.names = entropy1[ ,1])
+
+entropy2.bn10<- best_n(entropy2[ ,-1], 10)
+entropy2.bn10<- data.frame(entropy2.bn10, row.names = entropy2[ ,1])
+entropy2.bn15<- best_n(entropy2[ ,-1], 15)
+entropy2.bn15<- data.frame(entropy2.bn15, row.names = entropy2[ ,1])
+
+entropy2.sw.bn10<- best_n(entropy2.sw, 10)
+entropy2.sw.bn10<- data.frame(entropy2.sw.bn10, row.names = entropy2[ ,1])
+entropy2.sw.bn15<- best_n(entropy2.sw, 200)
+entropy2.sw.bn15<- data.frame(entropy2.sw.bn15, row.names = entropy2[ ,1])
+#############Simrank: datset1###############
+ simrank.bn10<- best_n(simrank, n=10)
+  simrank.bn10<- data.frame(simrank.bn10, row.names = simrank[ ,1])
+  simrank.bn15<- best_n(simrank, n=15)
+  simrank.bn15<- data.frame(simrank.bn15, row.names = simrank[ ,1])
+   simrank.sw.bn10<- best_n(simrank.sw, n=10)
+  simrank.sw.bn10<- data.frame(simrank.sw.bn10, row.names = simrank[, 1])
+  simrank.sw.bn15<- best_n(simrank.sw, n=15)
+  simrank.sw.bn15<- data.frame(simrank.sw.bn15, row.names = simrank[, 1])
+
+}
+```
+
+```{r}
+# #######################Pearson###################################
+# write.csv(pearson1.bn15,"/Users/linhan/Desktop/semester3/ADS/fall2017-project4-group4/output/pearson_new/pearson1.bn15.csv")
+# write.csv(pearson1.bn10,"/Users/linhan/Desktop/semester3/ADS/fall2017-project4-group4/output/pearson_new/pearson1.bn10.csv")
+# write.csv(pearson1.sw.bn15,"/Users/linhan/Desktop/semester3/ADS/fall2017-project4-group4/output/pearson_new/pearson1.sw.bn15.csv")
+# write.csv(pearson1.sw.bn10,"/Users/linhan/Desktop/semester3/ADS/fall2017-project4-group4/output/pearson_new/pearson1.sw.bn10.csv")
+# 
+# write.csv(pearson2.bn15,"/Users/linhan/Desktop/semester3/ADS/fall2017-project4-group4/output/pearson_new/pearson2.bn15.csv")
+# write.csv(pearson2.bn10,"/Users/linhan/Desktop/semester3/ADS/fall2017-project4-group4/output/pearson_new/pearson2.bn10.csv")
+# 
+# write.csv(pearson2.sw.bn15,"/Users/linhan/Desktop/semester3/ADS/fall2017-project4-group4/output/pearson_new/pearson2.sw.bn15.csv")
+# write.csv(pearson2.sw.bn10,"/Users/linhan/Desktop/semester3/ADS/fall2017-project4-group4/output/pearson_new/pearson2.sw.bn10.csv")
+# ###########################mse######################################
+# 
+# write.csv(mse2.bn10, "/Users/linhan/Desktop/semester3/ADS/fall2017-project4-group4/output/mse_new/mse2.bn10.csv")
+# write.csv(mse2.bn15, "/Users/linhan/Desktop/semester3/ADS/fall2017-project4-group4/output/mse_new/mse2.bn15.csv")
+# write.csv(mse2.sw.bn10,"/Users/linhan/Desktop/semester3/ADS/fall2017-project4-group4/output/mse_new/mse2.sw.bn10.csv")
+# write.csv(mse2.sw.bn15,"/Users/linhan/Desktop/semester3/ADS/fall2017-project4-group4/output/mse_new/mse2.sw.bn15.csv")
+# 
+# 
+# write.csv(mse1.bn10, "/Users/linhan/Desktop/semester3/ADS/fall2017-project4-group4/output/mse_new/mse1.bn10.csv")
+# write.csv(mse1.bn15, "/Users/linhan/Desktop/semester3/ADS/fall2017-project4-group4/output/mse_new/mse1.bn15.csv")
+# write.csv(mse1.sw.bn10,"/Users/linhan/Desktop/semester3/ADS/fall2017-project4-group4/output/mse_new/mse1.sw.bn10.csv")
+# write.csv(mse1.sw.bn15,"/Users/linhan/Desktop/semester3/ADS/fall2017-project4-group4/output/mse_new/mse1.sw.bn15.csv")
+
+########################entropy#############################
+
+write.csv(entropy2.bn10, "/Users/linhan/Desktop/semester3/ADS/fall2017-project4-group4/output/entropy_new/entropy2.bn10.csv")
+write.csv(entropy2.bn15, "/Users/linhan/Desktop/semester3/ADS/fall2017-project4-group4/output/entropy_new/mse2.bn15.csv")
+write.csv(entropy2.sw.bn10,"/Users/linhan/Desktop/semester3/ADS/fall2017-project4-group4/output/entropy_new/entropy2.sw.bn10.csv")
+write.csv(entropy2.sw.bn15,"/Users/linhan/Desktop/semester3/ADS/fall2017-project4-group4/output/entropy_new/entropy2.sw.bn15.csv")
+
+
+write.csv(entropy1.bn10, "/Users/linhan/Desktop/semester3/ADS/fall2017-project4-group4/output/entropy_new/entropy1.bn10.csv")
+write.csv(entropy1.bn15, "/Users/linhan/Desktop/semester3/ADS/fall2017-project4-group4/output/entropy_new/entropy1.bn15.csv")
+write.csv(entropy1.sw.bn10,"/Users/linhan/Desktop/semester3/ADS/fall2017-project4-group4/output/entropy_new/entropy1.sw.bn10.csv")
+write.csv(entropy1.sw.bn15,"/Users/linhan/Desktop/semester3/ADS/fall2017-project4-group4/output/entropy_new/entropy1.sw.bn15.csv")
+###################Simrank###################
+write.csv(simrank.bn10, "/Users/linhan/Desktop/semester3/ADS/fall2017-project4-group4/output/simrank_new/simrank.bn10.csv")
+write.csv(simrank.bn15, "/Users/linhan/Desktop/semester3/ADS/fall2017-project4-group4/output/simrank_new/simrank.bn15.csv")
+write.csv(simrank.sw.bn10,"/Users/linhan/Desktop/semester3/ADS/fall2017-project4-group4/output/simrank_new/simrank.sw.bn10.csv")
+write.csv(simrank.sw.bn15,"/Users/linhan/Desktop/semester3/ADS/fall2017-project4-group4/output/simrank_new/simrank.sw.bn15.csv")
+
+```
+
+```{r}
+if(run.w_threshold){
+# ###############dataset1#######################0.5,0.6, 0.7
+#  pearson1.wt0.4<-cwt(pearson1[ ,-1], t= 0.4)
+#   pearson1.wt0.5<-cwt(pearson1[ ,-1], t= 0.5)
+#   pearson1.wt0.6<-cwt(pearson1[ ,-1], t= 0.6)
+#   pearson2.wt0.7<-cwt(pearson2[ ,-1], t= 0.7)
+#  pearson1.sw.wt0.4<- cwt(pearson1.sw, t= 0.4)
+#   pearson1.sw.wt0.5<- cwt(pearson1.sw, t= 0.5)
+#   pearson1.sw.wt0.6<- cwt(pearson1.sw, t= 0.6)
+#   pearson1.sw.wt0.7<- cwt(pearson1.sw, t= 0.7)
+# # ################dataset2######################0.5,0.6,0.7
+#    pearson2.wt0.5<-cwt(pearson2[ ,-1], t= 0.5)
+#    pearson2.wt0.6<-cwt(pearson2[ ,-1], t= 0.6)
+
+#    pearson2.sw.wt0.5<- cwt(pearson2.sw, t= 0.5)
+#    pearson2.sw.wt0.6<- cwt(pearson2.sw, t= 0.6)
+
+# #################dataset1######################mse1:0.08, 0.1
+# mse1.wt0.08<- cwt(mse1[ ,-1], t=0.08)
+# mse1.wt0.1<- cwt(mse1[ ,-1], t=0.1)
+# mse1.sw.wt0.08<- cwt(mse1.sw, t=0.08)
+# mse1.sw.wt0.1<- cwt(mse1.sw, t=0.1)
+# # #################dataset2######################mse:0-25:5
+#  mse2.wt0.85<- cwt(mse2[ ,-1], t=0.85)
+
+# mse2.sw.wt0.85<- cwt(mse2.sw, t =0.85)
+
+#   ####################dataset1#######################0.6, 0.8
+# entropy1.wt0.8<-cwt(entropy1[ ,-1], t= 0.8)
+#  entropy1.sw.wt0.7<- cwt(entropy1.sw, t= 0.7)
+#  ###################dataset2######################
+# entropy2.wt0.3<-cwt(entropy2[ ,-1], t= 0.3)
+
+# entropy2.sw.wt0.3<- cwt(entropy2.sw, t= 0.3)
+
+#   #############simrank dataset1################
+# simrank.wt0.08<- cwt(simrank, t= 0.08)
+# simrank.sw.wt0.07 <- cwt(simrank.sw, t= 0.07)
+}
+```
+
+
+###3(c)Combined
+
+```{r}
+if(run.combined){
+  # pearson1.com<- combined(pearson1, n=30, t=0.5)
+  # pearson1.com<- data.frame(pearson1.com, row.names = pearson1[ ,1])
+  # pearson2.com<- combined(pearson2, n=30, t=0.5)
+  # pearson2.com<- data.frame(pearson2.com, row.names = pearson2[ ,1])
+  # pearson1.sw.com<- combined(pearson1.sw, n=30, t=0.4)
+  # pearson1.sw.com<- data.frame(pearson1.sw.com, row.names = pearson1[ ,1])
+  # pearson2.sw.com<- combined(pearson2.sw, n=30, t=0.5)
+  # pearson2.sw.com<- data.frame(pearson2.sw.com, row.names = pearson2[ ,1])
+  # ###############
+  # mse1.com<- combined(mse1[ ,-1], t=0.06,n=30)
+  # mse1.com<-data.frame(mse1.com, row.names=mse1[ ,1])
+  # mse1.sw.com<- combined(mse1.sw, t=0.06,n=30)
+  # mse1.sw.com<-data.frame(mse1.sw.com, row.names=mse1[ ,1])
+  mse2.com<- combined(mse2[ ,-1], t=0.7, n=30)
+  mse2.com<-data.frame(mse2.com, row.names=mse2[ ,1])
+  mse2.sw.com<- combined(mse2.sw, t=0.7, n=30)
+  mse2.sw.com<-data.frame(mse2.sw.com, row.names=mse2[ ,1])
+  ###########entropy#################
+  entropy1.com<- combined(entropy1, n=30, t=0.6)
+  entropy1.com<-data.frame(entropy1.com, row.names=entropy1[ ,1])
+  entropy1.sw.com<- combined(entropy1.sw, n=30, t=0.6)
+  entropy1.sw.com<-data.frame(entropy1.sw.com, row.names=entropy1[ ,1])
+  
+  entropy2.com<- combined(entropy2, n=30, t=0.2)
+  entropy2.com<-data.frame(entropy2.com, row.names=entropy2[ ,1])
+  entropy2.sw.com<- combined(entropy2.sw, n=30, t=0.2)
+  entropy2.sw.com<-data.frame(entropy2.sw.com, row.names=entropy2[ ,1])
+  ##############simrank##############
+  simrank.com<- combined(simrank, n=30, t=0.05)
+  simrank.com<- data.frame(simrank.com, row.names = simrank[ ,1])
+  simrank.sw.com<- combined(simrank.sw, n=30, t=0.005)
+  simrank.sw.com<- data.frame(simrank.sw.com, row.names = simrank[ ,1])
+}
+```
+
+```{r}
+# write.csv(pearson1.com, "/Users/linhan/Desktop/semester3/ADS/fall2017-project4-group4/output/pearson_new/pearson1.com")
+# write.csv(pearson2.com, "/Users/linhan/Desktop/semester3/ADS/fall2017-project4-group4/output/pearson_new/pearson2.com")
+# write.csv(pearson1.sw.com, "/Users/linhan/Desktop/semester3/ADS/fall2017-project4-group4/output/pearson_new/pearson1.sw.com")
+# write.csv(pearson2.sw.com, "/Users/linhan/Desktop/semester3/ADS/fall2017-project4-group4/output/pearson_new/pearson2.sw.com")
+# #############entropy###############
+# write.csv(entropy1.com,"/Users/linhan/Desktop/semester3/ADS/fall2017-project4-group4/output/entropy_new/entropy1.com.csv")
+# write.csv(entropy1.sw.com,"/Users/linhan/Desktop/semester3/ADS/fall2017-project4-group4/output/entropy_new/entropy1.sw.com.csv")
+# write.csv(entropy2.com,"/Users/linhan/Desktop/semester3/ADS/fall2017-project4-group4/output/entropy_new/entropy2.com.csv")
+# write.csv(entropy2.sw.com,"/Users/linhan/Desktop/semester3/ADS/fall2017-project4-group4/output/entropy_new/entropy2.sw.com.csv")
+# #############mse################
+# write.csv(mse1.com, "/Users/linhan/Desktop/semester3/ADS/fall2017-project4-group4/output/mse_new/mse1.com.csv")
+write.csv(mse2.com, "/Users/linhan/Desktop/semester3/ADS/fall2017-project4-group4/output/mse_new/mse2.com.csv")
+write.csv(mse1.sw.com, "/Users/linhan/Desktop/semester3/ADS/fall2017-project4-group4/output/mse_new/mse1.sw.com.csv")
+write.csv(mse2.sw.com, "/Users/linhan/Desktop/semester3/ADS/fall2017-project4-group4/output/mse_new/mse2.sw.com.csv")
+#########simrank########
+write.csv(simrank.com, "/Users/linhan/Desktop/semester3/ADS/fall2017-project4-group4/output/simrank_new/simrank.com.csv")
+write.csv(simrank.sw.com, "/Users/linhan/Desktop/semester3/ADS/fall2017-project4-group4/output/simrank_new/simrank.sw.com.csv")
+```
+
+Since the files are too large, we put the output file in following links:
+mse: https://drive.google.com/a/columbia.edu/file/d/11qNIctCBBnH8m3uYsNSfXuDfLUc1fBDE/view?usp=sharing
+entropy :https://drive.google.com/a/columbia.edu/file/d/1bsSV5B3XB-sua_VZzvwlLUSZ5EXwpZfc/view?usp=sharing
+Pearson???https://drive.google.com/a/columbia.edu/file/d/163V7URgfgwyH7fuYZDODi-HLyWkmc4tD/view?usp=sharing
+simrank: https://drive.google.com/a/columbia.edu/file/d/1LgLeVgswK56wEi96L_EOkbk3EJkK1J-Q/view?usp=sharing
+
+##4.Rating Normalization
+
+
+#Algorithm Two: Model-based Algorithm------Cluster Models
