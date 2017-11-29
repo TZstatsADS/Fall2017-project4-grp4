@@ -538,8 +538,8 @@ library(pROC)
 ```
 
 ```{r}
-movie<- read.csv("./eachmovie_sample/data_train.csv")
-movie_test<- read.csv("./eachmovie_sample/data_test.csv")
+movie<- read.csv("../data/eachmovie_sample/data_train.csv")
+movie_test<- read.csv("../data/eachmovie_sample/data_test.csv")
 
 C_range<-c(3, 5, 7, 9)
 MAE<- c()
@@ -622,8 +622,8 @@ for (c in 1:length(C_range)){
 
 ## Use the best class size C=9 on testing set
 ```{r}
-movie_train<- read.csv("./eachmovie_sample/data_train.csv")
-movie_test<- read.csv("./eachmovie_sample/data_test.csv")
+movie_train<- read.csv("../data/eachmovie_sample/data_train.csv")
+movie_test<- read.csv("../data/eachmovie_sample/data_test.csv")
 
 list_of_users_train<- unique(movie_train$User)
 list_of_movies_train<- unique(movie_train$Movie)
