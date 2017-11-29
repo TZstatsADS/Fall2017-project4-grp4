@@ -12,9 +12,21 @@ source("../lib/best_n.R")
 source("../lib/combined.R")
 source("../lib/prediction for movie dataset with bestn.R")
 source("../lib/EM_for_CF.R")
+source("../lib/MS_data_preprocess.R")
+source("../lib/MS_data_SimRank.R")
+source("../lib/Prediction.R")
+source("../lib/Ranked_Score.R")
 ```
 
 #Data Processing
+
+```{r}
+# generate ME_train2.csv and MS_test.csv
+MS_data_preprocess()
+MS_data_preprocess2()
+
+```
+
 
 ```{r}
 ms_train<- read.csv("../data/MS_train2.csv",header = T, stringsAsFactors = F)
@@ -192,6 +204,11 @@ mse2<-mse.similarity2
 ```
 
 ###1.(d)SimRank
+```{r}
+SimRank_Data=SimRank()
+SimRank_Data[[3]]
+```
+
 
 ##2. Significance Weighting
 
@@ -527,6 +544,27 @@ simrank: https://drive.google.com/a/columbia.edu/file/d/1LgLeVgswK56wEi96L_EOkbk
 ##4.Rating Normalization
 
 ## Prediction 
+```{r}
+
+names=list.files(path='./Data/Weight')
+names=substr(names,start=1,stop=nchar(names)-4)
+#names.new=list.files(path='./Data/Prediction')
+#names.new=substr(names.new,start=4,stop=nchar(names.new)-4)
+#names=setdiff(names,names.new)
+
+reg1='[a-z]{1,7}1\\.'
+reg2='[a-z]{1,7}2\\.'
+weight1=c(grep(names,pattern=reg1,value=T),grep(names,pattern='simrank',value=T))
+weight2=grep(names,pattern=reg2,value=T)
+
+for(i in 1:length(weight1))
+  Rating_Normalization1(weight1[i])
+
+for(i in 1:2)
+  Rating_Normalization2(weight2[i])
+
+```
+
 
 Dataset 2:
 ```{r}
