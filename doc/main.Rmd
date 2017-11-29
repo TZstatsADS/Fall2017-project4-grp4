@@ -10,6 +10,8 @@ source("../lib/sign_weight1.R")
 source("../lib/w_threshold.R")
 source("../lib/best_n.R")
 source("../lib/combined.R")
+source("../lib/prediction for movie dataset with bestn.R")
+
 ```
 
 #Data Processing
@@ -516,7 +518,15 @@ Pearson: https://drive.google.com/a/columbia.edu/file/d/163V7URgfgwyH7fuYZDODi-H
 
 simrank: https://drive.google.com/a/columbia.edu/file/d/1LgLeVgswK56wEi96L_EOkbk3EJkK1J-Q/view?usp=sharing
 
+
 ##4.Rating Normalization
 
+## Prediction 
+
+Dataset 2:
+```{r}
+K=10
+prediction(mv_test, mv_train, K, weight)
+```
 
 #Algorithm Two: Model-based Algorithm------Cluster Models
