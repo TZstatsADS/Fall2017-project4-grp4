@@ -530,3 +530,157 @@ prediction(mv_test, mv_train, K, weight)
 ```
 
 #Algorithm Two: Model-based Algorithm------Cluster Models
+
+```{r}
+source("../lib/EM_for_CF.R")
+library(dplyr)
+library(pROC)
+```
+
+```{r}
+movie<- read.csv("./eachmovie_sample/data_train.csv")
+movie_test<- read.csv("./eachmovie_sample/data_test.csv")
+
+C_range<-c(3, 5, 7, 9)
+MAE<- c()
+ROC<- list()
+
+list_of_users<- unique(movie$User)
+num_of_users<- length(unique(movie$User))
+```
+
+## Choose the best class size C
+```{r}
+for (c in 1:length(C_range)){
+  
+  movie_train<- data_frame()
+  movie_valid<- data_frame()
+
+  # Divide the whloe traing set into training and validation sets
+  for(user in list_of_users){
+    sub_data<- movie[movie$User==user, ][c("Movie", "User", "Score")]
+    sub_train<- sample_frac(sub_data, 0.7, replace=FALSE)
+    sub_valid<- dplyr::setdiff(sub_data, sub_train)
+  
+    movie_train<- rbind(movie_train, sub_train)   # training set
+    movie_valid<- rbind(movie_valid, sub_valid)    # validation set
+  }
+  
+  list_of_movies_train<- unique(movie_train$Movie)
+  list_of_movies_valid<- unique(movie_valid$Movie)
+  
+  list_of_users_train<- unique(movie_train$User)
+  list_of_users_valid<- unique(movie_valid$User)
+  
+  num_of_movies_valid<- length(unique(movie_valid$Movie))
+  num_of_users_valid<- length(unique(movie_valid$User))
+  
+  # Train parameters (class size C) on training set
+  train_params<- EM_for_CF(movie_train, C=C_range[c], iterations=12)    
+  pi_mat<- train_params$pi_mat
+  gamma_array<- train_params$gamma_array
+  print(paste("C =", C_range[c], "training Step finished!"))
+  
+  # Evaluate on validation set
+  est_Score<-c()
+    
+  for(i in 1:num_of_users_valid){
+    user<- list_of_users_valid[i]
+    user_index<- match(user, list_of_users_train)
+    sub_valid<- movie_valid[movie_valid$User==user, ]
+       
+    for(j in 1:dim(sub_valid)[1]){
+      movie<- sub_valid$Movie[j]
+      movies_index<- match(movie, list_of_movies_train)
+      if(is.na(movies_index)){S<- NA}
+      else{
+        S<- 0
+        for(score in 1:6){
+          S<- S + score * sum(pi_mat[user_index, ] * gamma_array[movies_index, score, 1:C_range[c]])
+        }
+      }
+      est_Score<- append(est_Score, S)
+    }
+  }
+  
+  NA_index<- which(is.na(est_Score))
+  if(length(NA_index > 0)){
+    est_Score<- est_Score[!is.na(est_Score)]    # Remove NA values
+    real_Score<- movie_valid$Score[-NA_index]    # Remove NA values
+  }else{
+    real_Score<- movie_valid$Score
+  }
+    
+  MAE[c]<- sum(abs(est_Score - real_Score)) / length(est_Score)    # Mean absolute error (MAE)
+  # MAE: how big of an error we can expect from the forcast on average
+  ROC[[c]]<- multiclass.roc(real_Score, est_Score, plot=TRUE)    # Calculate ROC and plot it
+  
+  
+  print(paste("C =", C_range[c], "validation step finished!"))
+}
+```
+
+## Use the best class size C=9 on testing set
+```{r}
+movie_train<- read.csv("./eachmovie_sample/data_train.csv")
+movie_test<- read.csv("./eachmovie_sample/data_test.csv")
+
+list_of_users_train<- unique(movie_train$User)
+list_of_movies_train<- unique(movie_train$Movie)
+list_of_users_test<- unique(movie_test$User)
+list_of_movies_test<- unique(movie_test$Movie)
+  
+num_of_users_test<- length(unique(movie_test$User))
+num_of_movies_test<- length(unique(movie_test$Movie))
+  
+  
+train_params<- EM_for_CF(movie_train, C=9, iterations=12)    
+pi_mat<- train_params$pi_mat
+gamma_array<- train_params$gamma_array
+print(paste("C =", 9, "training Step finished!"))
+    
+est_Score<-c()
+    
+for(i in 1:num_of_users_test){
+  user<- list_of_users_test[i]
+  user_index<- match(user, list_of_users_train)
+  sub_test<- movie_test[movie_test$User==user, ]
+    
+  for(j in 1:dim(sub_test)[1]){
+    movie<- sub_test$Movie[j]
+    movies_index<- match(movie, list_of_movies_train)
+    S<- 0
+    for(score in 1:6){
+      S<- S + score * sum(pi_mat[user_index, ] * gamma_array[movies_index, score, 1:9])
+    }
+      est_Score<- append(est_Score, S)
+  }
+}
+    
+mae_for_9<- sum(abs(est_Score - movie_test$Score)) / length(est_Score)    # Mean absolute error (MAE)
+roc_for_9<- multiclass.roc(movie_test$Score, est_Score, plot=TRUE)    # Calculate ROC and plot it
+  
+print(paste("C =", 9, "testing step finished!"))
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
