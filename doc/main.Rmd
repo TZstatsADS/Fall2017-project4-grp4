@@ -624,7 +624,7 @@ for (c in 1:length(C_range)){
 }
 ```
 
-### Use the best class size C=9 on testing set
+### Use the best class size C=7 on testing set
 ```{r}
 movie_train<- read.csv("../data/eachmovie_sample/data_train.csv")
 movie_test<- read.csv("../data/eachmovie_sample/data_test.csv")
@@ -638,10 +638,10 @@ num_of_users_test<- length(unique(movie_test$User))
 num_of_movies_test<- length(unique(movie_test$Movie))
   
   
-train_params<- EM_for_CF(movie_train, C=9, iterations=12)    
+train_params<- EM_for_CF(movie_train, C=7, iterations=12)    
 pi_mat<- train_params$pi_mat
 gamma_array<- train_params$gamma_array
-print(paste("C =", 9, "training Step finished!"))
+print(paste("C =", 7, "training Step finished!"))
     
 est_Score<-c()
     
@@ -655,7 +655,7 @@ for(i in 1:num_of_users_test){
     movies_index<- match(movie, list_of_movies_train)
     S<- 0
     for(score in 1:6){
-      S<- S + score * sum(pi_mat[user_index, ] * gamma_array[movies_index, score, 1:9])
+      S<- S + score * sum(pi_mat[user_index, ] * gamma_array[movies_index, score, 1:7])
     }
       est_Score<- append(est_Score, S)
   }
@@ -664,7 +664,7 @@ for(i in 1:num_of_users_test){
 mae_for_9<- sum(abs(est_Score - movie_test$Score)) / length(est_Score)    # Mean absolute error (MAE)
 roc_for_9<- multiclass.roc(movie_test$Score, est_Score, plot=TRUE)    # Calculate ROC and plot it
   
-print(paste("C =", 9, "testing step finished!"))
+print(paste("C =", 7, "testing step finished!"))
 ```
 
 
