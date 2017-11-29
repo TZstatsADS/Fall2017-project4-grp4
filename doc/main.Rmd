@@ -11,7 +11,7 @@ source("../lib/w_threshold.R")
 source("../lib/best_n.R")
 source("../lib/combined.R")
 source("../lib/prediction for movie dataset with bestn.R")
-
+source("../lib/EM_for_CF.R")
 ```
 
 #Data Processing
@@ -534,10 +534,9 @@ K=10
 prediction(mv_test, mv_train, K, weight)
 ```
 
-#Algorithm Two: Model-based Algorithm------Cluster Models
 
+# Algorithm Two: Model-based Algorithm------Cluster Models
 ```{r}
-source("../lib/EM_for_CF.R")
 library(dplyr)
 library(pROC)
 ```
@@ -554,7 +553,7 @@ list_of_users<- unique(movie$User)
 num_of_users<- length(unique(movie$User))
 ```
 
-## Choose the best class size C
+### Choose the best class size C
 ```{r}
 for (c in 1:length(C_range)){
   
@@ -625,7 +624,7 @@ for (c in 1:length(C_range)){
 }
 ```
 
-## Use the best class size C=9 on testing set
+### Use the best class size C=9 on testing set
 ```{r}
 movie_train<- read.csv("../data/eachmovie_sample/data_train.csv")
 movie_test<- read.csv("../data/eachmovie_sample/data_test.csv")
