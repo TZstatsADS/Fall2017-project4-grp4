@@ -4,7 +4,13 @@ test2 = data.frame(test2[,c(-1)],row.names = test2[,1])
 K = 10
 
 prediction<-function(test2, train2, K, weight){
-  
+  ###Params
+    #test2:testing set
+    #train2: traing set
+    #K: number of nearest neighbours
+    #weight: similarity matrix w/ significant weight
+  ###Return: None
+ 
   pred2 = matrix(NA, nrow=nrow(test2),ncol=ncol(test2))
   
   #for each user i, we want to apply trained model to predict the 
