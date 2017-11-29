@@ -8,5 +8,5 @@ MAE<- function(mv_test, pred){
   mm<- abs(NewDF- mv_test[ ,-1])
   mun<- sum(!is.na(mm))
   x<- sum(mm,na.rm = T)/mun
-  return(x)
+  return(c(deparse(substitute(pred)), x) )
 }
