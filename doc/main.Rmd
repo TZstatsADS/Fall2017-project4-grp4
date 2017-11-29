@@ -705,6 +705,104 @@ roc_for_9<- multiclass.roc(movie_test$Score, est_Score, plot=TRUE)    # Calculat
 print(paste("C =", 7, "testing step finished!"))
 ```
 
+###########Evaluation##################
+
+##########MAE for Memory-based Algorithm of Movie Dataset############
+```{r}
+MAE<- function(mv_test, pred){
+  pred1<- pred[ ,-1]
+  pred1<- data.frame(pred1, row.names = pred[ ,1])
+  n<- names(mv_test[, -1])
+  n<-list(n)
+  idx <- match(n[[1]], names(pred1) )
+  NewDF <- pred1[,idx] 
+  mm<- abs(NewDF- mv_test[ ,-1])
+  mun<- sum(!is.na(mm))
+  #mun<- sum(nrow(mm)*ncol(mm))
+  x<- sum(mm,na.rm = T)/mun
+  return(c(deparse(substitute(pred)), x) )
+}
+```
+
+```{r}
+#EM_entropy2.com<- read.csv("/Users/linhan/Desktop/Prediction/ds2/EM_entropy2.com.csv")
+# EM_entropy2.sw.com<-read.csv("/Users/linhan/Desktop/Prediction/ds2/EM_entropy2.sw.com.csv")
+# EM_mse2.com<- read.csv("/Users/linhan/Desktop/Prediction/ds2/EM_mse2.com.csv")
+# EM_mse2.sw.com<- read.csv("/Users/linhan/Desktop/Prediction/ds2/EM_mse2.sw.com.csv")
+EM_entropy2.bn10<- read.csv("/Users/linhan/Desktop/Prediction2/ds2/EM_entropy2.bn10.csv")
+EM_entropy2.com<- read.csv("/Users/linhan/Desktop/Prediction2/ds2/EM_entropy2.com.csv")
+EM_entropy2.sw.bn10<-read.csv("/Users/linhan/Desktop/Prediction2/ds2/EM_entropy2.sw.bn10.csv")
+EM_entropy2.sw.bn15<-read.csv("/Users/linhan/Desktop/Prediction2/ds2/EM_entropy2.sw.bn15.csv")
+EM_entropy2.sw.wt0.3<- read.csv("/Users/linhan/Desktop/Prediction2/ds2/EM_entropy2.sw.wt0.3.csv")
+EM_entropy2.wt0.3<-read.csv("/Users/linhan/Desktop/Prediction2/ds2/EM_entropy2.wt0.3.csv")
+EM_mse2.bn10<- read.csv("/Users/linhan/Desktop/Prediction2/ds2/EM_mse2.bn10.csv")
+EM_mse2.bn15<-read.csv("/Users/linhan/Desktop/Prediction2/ds2/EM_mse2.bn15.csv")
+
+EM_mse2.com<- read.csv("/Users/linhan/Desktop/Prediction2/ds2/EM_mse2.com.csv")
+EM_mse2.sw.bn10<- read.csv("/Users/linhan/Desktop/Prediction2/ds2/EM_mse2.sw.bn10.csv")
+
+
+EM_mse2.sw.bn15<-read.csv("/Users/linhan/Desktop/Prediction2/ds2/EM_mse2.sw.bn15.csv")
+EM_mse2.sw.com<-read.csv("/Users/linhan/Desktop/Prediction2/ds2/EM_mse2.sw.com.csv")
+
+EM_mse2.sw.wt0.85<- read.csv("/Users/linhan/Desktop/Prediction2/ds2/EM_mse2.sw.wt0.85.csv")
+EM_mse2.wt0.85<- read.csv("/Users/linhan/Desktop/Prediction2/ds2/EM_mse2.wt0.85.csv")
+
+EM_pearson2.bn10<- read.csv("/Users/linhan/Desktop/Prediction2/ds2/EM_pearson2.bn10.csv")
+#EM_pearson2.bn15 <- read.csv("/Users/linhan/Desktop/Prediction2/ds2/EM_pearson2.bn15.csv")
+EM_pearson2.com<-read.csv("/Users/linhan/Desktop/Prediction2/ds2/EM_pearson2.com.csv")
+EM_pearson2.sw.bn10<-read.csv("/Users/linhan/Desktop/Prediction2/ds2/EM_pearson2.sw.bn10.csv")
+EM_pearson2.sw.bn15<- read.csv("/Users/linhan/Desktop/Prediction2/ds2/EM_pearson2.sw.bn15.csv")
+EM_pearson2.sw.com<-read.csv("/Users/linhan/Desktop/Prediction2/ds2/EM_pearson2.sw.com.csv")
+EM_pearson2.sw.wt0.4<- read.csv("/Users/linhan/Desktop/Prediction2/ds2/EM_pearson2.sw.wt0.4.csv")
+EM_pearson2.sw.wt0.5<- read.csv("/Users/linhan/Desktop/Prediction2/ds2/EM_pearson2.sw.wt0.5.csv")
+EM_pearson2.wt0.5<- read.csv("/Users/linhan/Desktop/Prediction2/ds2/EM_pearson2.wt0.5.csv")
+EM_pearson2.wt0.6<- read.csv("/Users/linhan/Desktop/Prediction2/ds2/EM_pearson2.wt0.6.csv")
+```
+
+```{r}
+MAE(mv_test,EM_entropy2.bn10)
+MAE(mv_test,EM_entropy2.com)
+MAE(mv_test,EM_entropy2.sw.bn10)
+MAE(mv_test,EM_entropy2.sw.bn15)
+MAE(mv_test,EM_entropy2.sw.wt0.3)
+MAE(mv_test,EM_entropy2.wt0.3)
+MAE(mv_test,EM_mse2.bn10)
+MAE(mv_test,EM_mse2.bn15)
+MAE(mv_test,EM_mse2.com)
+MAE(mv_test,EM_mse2.sw.bn10)
+MAE(mv_test,EM_mse2.sw.bn15)
+MAE(mv_test,EM_mse2.sw.com)
+MAE(mv_test,EM_mse2.sw.wt0.85)
+MAE(mv_test,EM_pearson2.bn10)
+MAE(mv_test,EM_pearson2.bn15)
+MAE(mv_test,EM_pearson2.sw.com)
+MAE(mv_test,EM_pearson2.sw.wt0.4)
+MAE(mv_test,EM_pearson2.sw.wt0.5)
+MAE(mv_test,EM_pearson2.wt0.4)
+MAE(mv_test,EM_pearson2.wt0.5)
+```
+############Ranked Scoring##################
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
