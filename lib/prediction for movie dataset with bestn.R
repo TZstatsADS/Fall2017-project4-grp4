@@ -67,9 +67,9 @@ pred<-read.csv("prediction.csv")
 pred2 = as.data.frame(pred)
 pred2<-pred2[,-1]
 mv_test2<-mv_test[,-1]
-n_pred = sum(!is.na(mv_test.new))
+n_pred = sum(!is.na(mv_test2))
 
 pred2[is.na(pred2)] <- 0
 mv_test2[is.na(mv_test2)] <- 0
 
-sum(abs(pred2 - mv_test2))/n_pred  ##MAE=0.03
+sum(abs(pred2 - mv_test2))/n_pred  ##MAE=1.3
