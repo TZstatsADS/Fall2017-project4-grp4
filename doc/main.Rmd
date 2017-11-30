@@ -18,7 +18,7 @@ source("../lib/Prediction.R")
 source("../lib/Ranked_Score.R")
 ```
 
-#Data Processing
+# Data Processing
 
 ```{r}
 # generate ME_train2.csv and MS_test.csv
@@ -37,11 +37,11 @@ mv_test<- read.csv("../data/test2.csv",header = T, stringsAsFactors = F)
 
 ```
 
-#Algorithm One: Memory-based Algorithm
+# Algorithm One: Memory-based Algorithm
 
-##1. Similarity Weight
+## 1. Similarity Weight
 
-###1(a)Pearson Correlation
+### 1(a)Pearson Correlation
 
 ```{r}
 ### Dataset 1
@@ -57,7 +57,7 @@ mv_cor2[is.na(mv_cor2)]<-0
 pearson2<-mv_cor2
 ```
 
-###1(b)Entropy
+### 1(b)Entropy
 
 The first step is to calculate the entropy between users. 
 Note: this calculation requires a long time to run in R. To reproduce the code below, please refer to ENTROPY.ipynb in doc folder.
@@ -156,7 +156,7 @@ entropy2<-(m-ENPY2)/(m-0)
 entropy2[new.entropy2<0]<-0
 ```
 
-###1.(c)Mean-square-difference
+### 1.(c)Mean-square-difference
 
 To get the similarity score based on mean square difference, we use different approaches for the two datasets.
 For the first one, since we already convert the data to binary, we simply apply the pairwise euclidean distance between users, square them, then calculate the mean squared difference.
@@ -203,14 +203,14 @@ mse.similarity2[is.na(mse.similarity2)]=0
 mse2<-mse.similarity2
 ```
 
-###1.(d)SimRank
+### 1.(d)SimRank
 ```{r}
 SimRank_Data=SimRank()
 SimRank_Data[[3]]
 ```
 
 
-##2. Significance Weighting
+## 2. Significance Weighting
 
 ```{r}
 run.sign_weight=TRUE
@@ -231,9 +231,9 @@ if(run.sign_weight1){
 }
 ```
 
-##3.Selecting Neighbors
+## 3.Selecting Neighbors
 
-###3(a)Weight Threshold
+### 3(a)Weight Threshold
 
 
 ```{r}
@@ -282,7 +282,7 @@ if(run.w_threshold){
 
 
 
-###3(b)Best-n-estimator
+### 3(b)Best-n-estimator
 
 ```{r}
 if(run.best_n){
@@ -348,8 +348,6 @@ entropy2.sw.bn15<- data.frame(entropy2.sw.bn15, row.names = entropy2[ ,1])
 ```
 
 
-
-
 ```{r}
 if(run.w_threshold){
 # ###############dataset1#######################0.5,0.6, 0.7
@@ -393,7 +391,7 @@ if(run.w_threshold){
 ```
 
 
-###3(c)Combined
+### 3(c)Combined
 
 ```{r}
 if(run.combined){
@@ -432,9 +430,6 @@ if(run.combined){
 }
 ```
 
-```{r}
-
-
 Since the files are too large, we put the output file in following links:
 
 mse:  https://drive.google.com/a/columbia.edu/file/d/11qNIctCBBnH8m3uYsNSfXuDfLUc1fBDE/view?usp=sharing
@@ -446,9 +441,11 @@ Pearson: https://drive.google.com/a/columbia.edu/file/d/163V7URgfgwyH7fuYZDODi-H
 simrank: https://drive.google.com/a/columbia.edu/file/d/1LgLeVgswK56wEi96L_EOkbk3EJkK1J-Q/view?usp=sharing
 
 
-##4.Rating Normalization
+## 4.Rating Normalization
 
 ## Prediction 
+
+
 ```{r}
 
 names=list.files(path='./Data/Weight')
@@ -471,7 +468,7 @@ for(i in 1:2)
 ```
 
 
-Dataset 2:
+EachMovie Dataset (prediction using similarity weight+best-n method)
 ```{r}
 source("../lib/prediction for movie dataset with bestn.R")
 K=10
@@ -493,6 +490,7 @@ mv_test2[is.na(mv_test2)] <- 0
 sum(abs(pred2 - mv_test2))/n_pred  ##MAE=1.3
 ```
 Since the data is large, please find the prediction on EachMovie Dataset here: https://drive.google.com/file/d/1jaxwgbaEw_Ixg4NCxcBpOlbdxcC_PpKj/view
+
 
 # Algorithm Two: Model-based Algorithm------Cluster Models
 ```{r}
