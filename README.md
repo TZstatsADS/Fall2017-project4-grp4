@@ -45,9 +45,7 @@ We need to compare the following things:
 
 + (Memory-based) For the Movie Dataset, Significance Weighting seems to be a need to reduce MAE in every combination. In terms of Selecting Neighbors, Weight Threshold outperforms Best-N and Combined Method. For best-N, n=15 outperform n=10. Specifically, MSE+Significance Weighting+Weigth Threshold(0.85) performs the best. Pearson+Significance Weighting+Weight Threshold(0.5) and Pearson+Significance Weighting+Combined also perform well.
 
-+ (Model-based) The best collaborative filtering algorithm on the Movie dataset is our Cluster Model with 7 latent classes.
-
-Please note that it might not be the case on the Web Data Set, for which our better tested algorithm is the memory-based Entropy+Significance Weighting+Weight Threshold(0.7). Further analysis is needed for the cluster model on the Web data.
++ (Model-based) The best collaborative filtering algorithm on the Movie dataset is our Cluster Model with 7 latent classes. Please note that it might not be the case on the Web Data Set, for which our better tested algorithm is the memory-based Entropy+Significance Weighting+Weight Threshold(0.7). Further analysis is needed for the cluster model on the Web data.
 
 
 
