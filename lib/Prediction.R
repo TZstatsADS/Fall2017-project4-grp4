@@ -1,5 +1,4 @@
 
-
 # Prediction for data set 1 (Microsoft data)
 Rating_Normalization1=function(weight,write.file=T,timer=T,return=F)
 {
@@ -39,17 +38,6 @@ Rating_Normalization1=function(weight,write.file=T,timer=T,return=F)
   if(return)
     return(Prediction)
 }
-
-
-Rating_Normalization1('User_SimRank')
-Rating_Normalization1('mse1.sw.wt0.002')
-Rating_Normalization1('mse1.wt0.04')
-Rating_Normalization1('pearson1.bn50')
-Rating_Normalization1('pearson1.bn100')
-Rating_Normalization1('entropy1.bn100')
-
-
-
 
 # Prediction for data set 2 (Each movie)
 Rating_Normalization2=function(weight,write.file=T,timer=T,return=F)
@@ -92,10 +80,23 @@ Rating_Normalization2=function(weight,write.file=T,timer=T,return=F)
     return(Prediction)
 }
 
-Rating_Normalization2('entropy2.bn100')
 
+names=list.files(path='./Data/Weight')
+names=substr(names,start=1,stop=nchar(names)-4)
+#names.new=list.files(path='./Data/Prediction')
+#names.new=substr(names.new,start=4,stop=nchar(names.new)-4)
+#names=setdiff(names,names.new)
 
+reg1='[a-z]{1,7}1\\.'
+reg2='[a-z]{1,7}2\\.'
+weight1=c(grep(names,pattern=reg1,value=T),grep(names,pattern='simrank',value=T))
+weight2=grep(names,pattern=reg2,value=T)
 
+for(i in 1:length(weight1))
+  Rating_Normalization1(weight1[i])
+
+for(i in 1:length(weight2))
+  Rating_Normalization2(weight2[i])
 
 
 
